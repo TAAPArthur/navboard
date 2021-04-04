@@ -1,0 +1,103 @@
+#ifndef MYVKBD_H
+#define MYVKBD_H
+#include <X11/X.h>
+#include <X11/keysym.h>
+#include <X11/keysymdef.h>
+#include <xcb/xcb.h>
+#include "config.h"
+
+#define LEN(x)         (sizeof x / sizeof x[0])
+
+#define SHIFT   (1<<0)
+#define LOCK    (1<<1)
+#define MOD     (1<<2)
+#define LATCH   (1<<3)
+
+typedef struct {
+    KeySym keySym;
+    //KeySym keySymShift;
+    const char* label;
+    unsigned int weight;
+    char flags;
+
+    void(*onPress)();
+    void(*onRelease)();
+
+    // should not be manually set
+    char pressed;
+    char c;
+    int index;
+    KeyCode keyCode;
+} Key;
+
+typedef enum DockType {
+    LEFT, RIGHT, TOP, BOTTOM
+} DockType;
+
+typedef struct {
+    Key* keys;
+    int numKeys;
+    int numRows;
+    xcb_rectangle_t* rects;
+    int numRects;
+    xcb_window_t win;
+    short windowWidth;
+    short windowHeight;
+    int thicknessPercent;
+    DockType dockType;
+    short start;
+    short end;
+} KeyGroup;
+
+typedef struct Layout {
+    int groupSize;
+    KeyGroup keyGroup[1];
+    const char*name;
+    // Key* shiftKeys;
+    // int level;
+} Board;
+extern Board boards[MAX_BOARDS];
+extern int numBoards;
+
+KeyGroup* getKeyGroupForWindow(xcb_window_t win);
+
+
+void computeRects(KeyGroup*keyGroup);
+void initBoard(Board* board);
+
+void initKeyGroup(KeyGroup* keyGroup);
+
+char isRowSeperator(Key* key);
+
+Key* findKey(KeyGroup* keyGroup, int x, int y);
+
+void sendKeyPress(Key*key);
+
+void sendKeyPressWithModifiers(KeyGroup*keyGroup, Key*key);
+void sendKeyReleaseWithModifiers(KeyGroup*keyGroup, Key*key);
+void sendKeyRelease(Key*key);
+
+
+void setupWindowsForBoard(Board*board);
+void triggerCell(KeyGroup*keyGroup, Key*key, char press);
+
+extern void(*xEventHandlers[])();
+extern Key defaults[];
+extern KeySym remapping[][2];
+
+void buttonEvent(xcb_button_press_event_t* event);
+void configureNotify(xcb_configure_notify_event_t* event);
+void exposeEvent(xcb_expose_event_t* event);
+
+#define __CAT(x, y) x ## y
+#define _CAT(x, y) __CAT(x, y)
+
+#define CREATE_BOARD(NAME, BOARD) (Board)\
+{1, (KeyGroup){BOARD, LEN(BOARD), .dockType=DEFAULT_DOCK_TYPE, .thicknessPercent = DEFAULT_THICKNESS}, .name=# NAME}
+
+//##define REGISTER(B) REGISTER(B, B)
+#define REGISTER(NAME, BOARD) \
+__attribute__((constructor)) void __CAT(setup, NAME) () { boards[numBoards++] = CREATE_BOARD(NAME, BOARD);}
+
+
+#endif
