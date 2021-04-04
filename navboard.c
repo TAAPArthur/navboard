@@ -149,13 +149,13 @@ void computeRects(KeyGroup*keyGroup) {
         for(int j = i; j < numKeys && !isRowSeperator(&keyGroup->keys[j]); j++)
             numCols += keyGroup->keys[j].weight;
         assert(numCols);
-        int rem = width % numCols;
+        int rem = numCols - width % numCols;
         for(int x = 0; i < numKeys && !isRowSeperator(&keyGroup->keys[i]); i++) {
             keyGroup->rects[n] = (xcb_rectangle_t) { x, y, keyGroup->keys[i].weight* width / numCols, heightPerRow };
-            if(rem) {
+            if(!rem) {
                 keyGroup->rects[n].width += 1;
+            } else
                 rem--;
-            }
             x += keyGroup->rects[n].width;
             n++;
         }
