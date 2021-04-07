@@ -73,12 +73,15 @@ int initKeys(Key* keys, int n, int level) {
         keys[i].index = j++;
         if(keys[i].keySym) {
             keys[i].keyCode = getKeyCode(keys[i].keySym, &sym);
-            if(level && sym && sym[level])
-                keys[i].keySym = sym[level];
             if(!keys[i].label) {
-                keys[i].c = getKeyChar(keys[i].keySym);
-                if(!keys[i].c)
+                if(!getKeyChar(keys[i].keySym))
                     keys[i].label = XKeysymToString(keys[i].keySym);
+            }
+
+            if(sym && !keys[i].keySymShift) {
+                keys[i].keySymShift = sym[1];
+                if(!keys[i].altLabel)
+                    keys[i].altLabel = getKeyChar(sym[1]) ? NULL: keys[i].label;
             }
         }
     }
@@ -171,19 +174,27 @@ static void redrawCells(KeyGroup* keyGroup) {
     assert(keyGroup);
     for(int i = 0, n = 0; i < keyGroup->numKeys; i++) {
         if(!isRowSeperator(&keyGroup->keys[i])){
-            const char* label = keyGroup->keys[i].label;
             Key*key=&keyGroup->keys[i];
             updateBackground(keyGroup->drawable, key->background[key->pressed], &keyGroup->rects[key->index]);
-            drawText(keyGroup->drawable, label ? strlen(label) : 1,
+            const char* rawLabel = (&key->label)[keyGroup->level];
+            const char c = getKeyChar((&key->keySym)[keyGroup->level]);
+            const char* label = rawLabel ? rawLabel : &c;
+            int labelSize = rawLabel ? strlen(rawLabel) : 1;
+            drawText(keyGroup->drawable, labelSize,
                     key->foreground,
                     keyGroup->rects[n].x + keyGroup->rects[n].width / 2,
                 keyGroup->rects[n].y +  keyGroup->rects[n].height / 2,
-                label ? label : &keyGroup->keys[i].c);
+                label);
 
             n++;
         }
     }
     outlineRect(keyGroup->drawable, keyGroup->outlineColor, keyGroup->numRects, keyGroup->rects);
+}
+
+void shiftKeys(KeyGroup*keyGroup, Key*key) {
+    keyGroup->level = key->pressed;
+    redrawCells(keyGroup);
 }
 
 void configureNotify(xcb_configure_notify_event_t* event) {
@@ -216,13 +227,13 @@ void triggerCell(KeyGroup*keyGroup, Key*key, char press) {
     }
     if(hasLatchFlag(key) && !press)
         return;
+    key->pressed = hasLatchFlag(key) ? !key->pressed: press;
     if(press && key->onPress)
         key->onPress(keyGroup, key);
     else if(!press && key->onRelease) {
         key->onRelease(keyGroup, key);
     }
 
-    key->pressed = hasLatchFlag(key) ? !key->pressed: press;
 
     updateBackground(keyGroup->drawable, key->background[key->pressed], &keyGroup->rects[key->index]);
 }

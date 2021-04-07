@@ -18,8 +18,9 @@ typedef struct xdrawable XDrawable;
 typedef uint32_t Color;
 typedef struct {
     KeySym keySym;
-    //KeySym keySymShift;
+    KeySym keySymShift;
     const char* label;
+    const char* altLabel;
     unsigned int weight;
     char flags;
 
@@ -31,7 +32,6 @@ typedef struct {
 
     // should not be manually set
     char pressed;
-    char c;
     int index;
     KeyCode keyCode;
 } Key;
@@ -54,6 +54,7 @@ typedef struct {
     short start;
     short end;
     uint32_t outlineColor;
+    int level;
 } KeyGroup;
 
 typedef struct Layout {
@@ -62,7 +63,6 @@ typedef struct Layout {
     const char*name;
     const char*fontName;
     // Key* shiftKeys;
-    // int level;
 } Board;
 extern Board boards[MAX_BOARDS];
 extern int numBoards;
@@ -95,6 +95,7 @@ extern Key defaults[];
 void buttonEvent(xcb_button_press_event_t* event);
 void configureNotify(xcb_configure_notify_event_t* event);
 void exposeEvent(xcb_expose_event_t* event);
+void shiftKeys(KeyGroup*keyGroup, Key*key);
 
 #define __CAT(x, y) x ## y
 #define _CAT(x, y) __CAT(x, y)

@@ -29,7 +29,7 @@ SCUTEST(init_boards) {
                 Key*key = boards[i].keyGroup[j].keys + n;
                 if(isRowSeperator(key))
                     continue;
-                assert(key->label || key->c);
+                assert(key->label || key->keySym);
                 if(key->keySym)
                     assert(key->keyCode);
                 assert(key->weight);
