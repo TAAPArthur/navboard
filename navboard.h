@@ -13,6 +13,9 @@
 #define MOD     (1<<2)
 #define LATCH   (1<<3)
 
+typedef struct xdrawable XDrawable;
+
+typedef uint32_t Color;
 typedef struct {
     KeySym keySym;
     //KeySym keySymShift;
@@ -22,6 +25,9 @@ typedef struct {
 
     void(*onPress)();
     void(*onRelease)();
+
+    Color foreground;
+    Color background[2];
 
     // should not be manually set
     char pressed;
@@ -40,19 +46,21 @@ typedef struct {
     int numRows;
     xcb_rectangle_t* rects;
     int numRects;
-    xcb_window_t win;
+    XDrawable* drawable;
     short windowWidth;
     short windowHeight;
     int thicknessPercent;
     DockType dockType;
     short start;
     short end;
+    uint32_t outlineColor;
 } KeyGroup;
 
 typedef struct Layout {
     int groupSize;
     KeyGroup keyGroup[1];
     const char*name;
+    const char*fontName;
     // Key* shiftKeys;
     // int level;
 } Board;
@@ -83,7 +91,6 @@ void triggerCell(KeyGroup*keyGroup, Key*key, char press);
 
 extern void(*xEventHandlers[])();
 extern Key defaults[];
-extern KeySym remapping[][2];
 
 void buttonEvent(xcb_button_press_event_t* event);
 void configureNotify(xcb_configure_notify_event_t* event);
@@ -93,7 +100,7 @@ void exposeEvent(xcb_expose_event_t* event);
 #define _CAT(x, y) __CAT(x, y)
 
 #define CREATE_BOARD(NAME, BOARD) (Board)\
-{1, (KeyGroup){BOARD, LEN(BOARD), .dockType=DEFAULT_DOCK_TYPE, .thicknessPercent = DEFAULT_THICKNESS}, .name=# NAME}
+{1, (KeyGroup){BOARD, LEN(BOARD), .dockType=DEFAULT_DOCK_TYPE, .thicknessPercent = DEFAULT_THICKNESS}, .name=# NAME, .fontName=DEFAULT_FONT }
 
 //##define REGISTER(B) REGISTER(B, B)
 #define REGISTER(NAME, BOARD) \

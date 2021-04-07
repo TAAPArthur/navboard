@@ -30,9 +30,12 @@ int setActiveBoard(const char* name) {
     return 0;
 }
 
+#define SET_DEFAULT(K,V) if(K == 0) K = V
 void setDefaults(Key* key) {
-    if(key->weight == 0)
-        key->weight = 1;
+    SET_DEFAULT(key->weight, 1);
+    SET_DEFAULT(key->foreground, DEFAULT_TEXT_COLOR);
+    SET_DEFAULT(key->background[0], DEFAULT_CELL_COLOR);
+    SET_DEFAULT(key->background[1], DEFAULT_CELL_COLOR_PRESSED);
     for(int i = 0; defaults[i].keySym; i++) {
         if((key->keySym == defaults[i].keySym) || (key->keySym && defaults[i].keySym == -1)) {
             if(!key->label)
@@ -111,7 +114,7 @@ void initBoards() {
 
 KeyGroup* getKeyGroupForWindow(xcb_window_t win) {
     for(int i = 0; i < getActiveBoard()->groupSize; i++) {
-        if(getActiveBoard()->keyGroup[i].win == win)
+        if(matchesWindow(getActiveBoard()->keyGroup[i].drawable, win))
             return &getActiveBoard()->keyGroup[i];
     }
     return NULL;
@@ -169,13 +172,18 @@ static void redrawCells(KeyGroup* keyGroup) {
     for(int i = 0, n = 0; i < keyGroup->numKeys; i++) {
         if(!isRowSeperator(&keyGroup->keys[i])){
             const char* label = keyGroup->keys[i].label;
-            drawText(keyGroup->win, label ? strlen(label) : 1, keyGroup->rects[n].x + keyGroup->rects[n].width / 2,
+            Key*key=&keyGroup->keys[i];
+            updateBackground(keyGroup->drawable, key->background[key->pressed], &keyGroup->rects[key->index]);
+            drawText(keyGroup->drawable, label ? strlen(label) : 1,
+                    key->foreground,
+                    keyGroup->rects[n].x + keyGroup->rects[n].width / 2,
                 keyGroup->rects[n].y +  keyGroup->rects[n].height / 2,
                 label ? label : &keyGroup->keys[i].c);
+
             n++;
         }
     }
-    outlineRect(keyGroup->win, keyGroup->numRects, keyGroup->rects);
+    outlineRect(keyGroup->drawable, keyGroup->outlineColor, keyGroup->numRects, keyGroup->rects);
 }
 
 void configureNotify(xcb_configure_notify_event_t* event) {
@@ -216,7 +224,7 @@ void triggerCell(KeyGroup*keyGroup, Key*key, char press) {
 
     key->pressed = hasLatchFlag(key) ? !key->pressed: press;
 
-    updateBackground(keyGroup->win, key->pressed, &keyGroup->rects[key->index]);
+    updateBackground(keyGroup->drawable, key->background[key->pressed], &keyGroup->rects[key->index]);
 }
 
 void pressAllModifiers(KeyGroup*keyGroup, int press) {
@@ -225,7 +233,7 @@ void pressAllModifiers(KeyGroup*keyGroup, int press) {
             sendKeyEvent(press, keyGroup->keys[i].keyCode);
             if(!press && (keyGroup->keys[i].flags & LATCH)&& !(keyGroup->keys[i].flags & LOCK)) {
                 keyGroup->keys[i].pressed = 0;
-                updateBackground(keyGroup->win, 0, &keyGroup->rects[keyGroup->keys[i].index]);
+                updateBackground(keyGroup->drawable, keyGroup->keys[i].background[0], &keyGroup->rects[keyGroup->keys[i].index]);
             }
         }
     }
@@ -250,7 +258,7 @@ void sendKeyPressWithModifiers(KeyGroup*keyGroup, Key*key){
 }
 
 void buttonEvent(xcb_button_press_event_t* event) {
-    printf("Button event %d\n", event->detail);
+    //printf("Button event %d\n", event->detail);
     char press = event->response_type == XCB_BUTTON_PRESS;
     KeyGroup*keyGroup = getKeyGroupForWindow(event->event);
     Key* key = findKey(keyGroup, event->event_x, event->event_y);
@@ -260,12 +268,13 @@ void buttonEvent(xcb_button_press_event_t* event) {
 
 
 void setupWindowsForBoard(Board*board) {
+    setFont(board->fontName);
     for(int i = 0; i < board->groupSize; i++) {
         KeyGroup* keyGroup=&board->keyGroup[i];
-        keyGroup->win=createWindow();
-        setWindowProperties(keyGroup->win);
-        updateDockProperties(keyGroup->win, keyGroup->dockType, keyGroup->thicknessPercent, keyGroup->start, keyGroup->end);
-        mapWindow(keyGroup->win);
+        keyGroup->drawable=createWindow();
+        setWindowProperties(keyGroup->drawable);
+        updateDockProperties(keyGroup->drawable, keyGroup->dockType, keyGroup->thicknessPercent, keyGroup->start, keyGroup->end);
+        mapWindow(keyGroup->drawable);
     }
 }
 
@@ -275,7 +284,6 @@ void init() {
     addExtraEvent(getXFD(), processAllQueuedEvents);
 }
 
-    int dumpKeyCodes() ;
 int __attribute__((weak)) main(int argc, const char* args[]) {
     if(argc >1)
         if(!setActiveBoard(args[1]))

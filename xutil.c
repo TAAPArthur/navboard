@@ -12,17 +12,31 @@
 #include <xcb/xtest.h>
 #include "xutil.h"
 #include "config.h"
+#include <X11/Xft/Xft.h>
+#include <X11/Xlib-xcb.h>
+Display* dpy;
 xcb_connection_t* dis;
 xcb_window_t root;
 xcb_ewmh_connection_t* ewmh;
 xcb_screen_t* screen;
 xcb_gcontext_t  gc;
-xcb_gcontext_t  gcPressed[2];
 const xcb_setup_t* xSetup;
 xcb_get_keyboard_mapping_reply_t* keyboard_mapping;
+XftFont* font;
+
+struct xdrawable {
+    xcb_window_t win;
+    XftDraw *draw;
+};
 
 void initConnection() {
-    dis = xcb_connect(NULL, NULL);
+
+    dpy = XOpenDisplay(NULL);
+    if(!dpy) {
+        exit(1);
+    }
+    dis = XGetXCBConnection(dpy);
+    //dis = xcb_connect(NULL, NULL);
     ewmh = (xcb_ewmh_connection_t*)malloc(sizeof(xcb_ewmh_connection_t));
     xcb_intern_atom_cookie_t* cookie = xcb_ewmh_init_atoms(dis, ewmh);
     xcb_ewmh_init_atoms_replies(ewmh, cookie, NULL);
@@ -30,14 +44,8 @@ void initConnection() {
     root = screen->root;
 
     gc = xcb_generate_id(dis);
-    gcPressed[0] = xcb_generate_id(dis);
-    gcPressed[1] = xcb_generate_id(dis);
-    uint32_t value[]  = { 0xfefefe, 0x14313d };
-    xcb_create_gc(dis, gc, root, XCB_GC_FOREGROUND | XCB_GC_BACKGROUND, value);
-    uint32_t value2[]  = { 0x14313d, 0 };
-    uint32_t value3[]  = { 0x005577, 0};
-    xcb_create_gc(dis, gcPressed[0], root, XCB_GC_FOREGROUND | XCB_GC_BACKGROUND, value2);
-    xcb_create_gc(dis, gcPressed[1], root, XCB_GC_FOREGROUND | XCB_GC_BACKGROUND, value3);
+    uint32_t value[]  = { 0xfefefe, 0x14313d};
+    xcb_create_gc(dis, gc, root, XCB_GC_FOREGROUND | XCB_GC_BACKGROUND , value);
     xSetup      = xcb_get_setup(dis);
     keyboard_mapping = xcb_get_keyboard_mapping_reply(dis, xcb_get_keyboard_mapping(dis, xSetup->min_keycode,
                 xSetup->max_keycode - xSetup->min_keycode + 1), NULL);
@@ -46,21 +54,42 @@ void initConnection() {
 void closeConnection() {
 }
 
-xcb_window_t createWindow(){
+void setFont(const char* fontName) {
+    if(font) {
+        XftFontClose(dpy, font);
+        font = NULL;
+    }
+	font = XftFontOpenName(dpy, DefaultScreen(dpy), fontName);
+}
+
+void destroyWindow(XDrawable* drawable){
+	XftDrawDestroy(drawable->draw);
+    xcb_destroy_window(dis, drawable->win);
+}
+
+XDrawable* createWindow(){
     xcb_window_t win = xcb_generate_id(dis);
-    uint32_t windowValues[] = {0x14313d, WINDOW_MASKS};
+    uint32_t windowValues[] = {WINDOW_MASKS};
     xcb_create_window(dis, XCB_COPY_FROM_PARENT, win, root, 0, 0, 10, 10,
         0, XCB_WINDOW_CLASS_INPUT_OUTPUT,
         screen->root_visual,
-        XCB_CW_BACK_PIXEL | XCB_CW_EVENT_MASK, windowValues);
-    return win;
+        XCB_CW_EVENT_MASK, windowValues);
+
+    XDrawable* drawable = malloc(sizeof(XDrawable));
+
+    *drawable = (XDrawable) {
+        win,
+        XftDrawCreate(dpy, win, DefaultVisual(dpy, DefaultScreen(dpy)),
+        DefaultColormap(dpy, DefaultScreen(dpy)))
+    };
+    return drawable;
 }
 
-void mapWindow(xcb_window_t win){
-    xcb_map_window(dis, win);
+void mapWindow(XDrawable* drawable){
+    xcb_map_window(dis, drawable->win);
 }
 
-void updateDockProperties(xcb_window_t win, DockType dockType, int thicknessPercent, int start, int end) {
+void updateDockProperties(XDrawable* drawable, DockType dockType, int thicknessPercent, int start, int end) {
     int dockProperties[4] = {0};
     if(end == 0) {
         end = (&screen->width_in_pixels)[dockType < TOP];
@@ -75,7 +104,6 @@ void updateDockProperties(xcb_window_t win, DockType dockType, int thicknessPerc
         width = end - start;
     }
 
-    xcb_ewmh_set_wm_strut(ewmh, win, dockProperties[0], dockProperties[1], dockProperties[2], dockProperties[3]);
     switch(dockType) {
         case TOP:
         case LEFT:
@@ -93,7 +121,9 @@ void updateDockProperties(xcb_window_t win, DockType dockType, int thicknessPerc
 
     uint32_t mask = XCB_CONFIG_WINDOW_X | XCB_CONFIG_WINDOW_Y | XCB_CONFIG_WINDOW_WIDTH | XCB_CONFIG_WINDOW_HEIGHT;
     uint32_t values[4] = {x, y, width, height};
-    xcb_configure_window(dis, win, mask, values);
+
+    xcb_ewmh_set_wm_strut(ewmh, drawable->win, dockProperties[0], dockProperties[1], dockProperties[2], dockProperties[3]);
+    xcb_configure_window(dis, drawable->win, mask, values);
 
 }
 
@@ -143,27 +173,37 @@ int getKeyCode(KeySym targetSym, xcb_keysym_t** foundSym) {
     return 0;
 }
 
-void drawText(xcb_window_t win, int numChars, int x, int y, const char*str) {
-    xcb_image_text_8(dis, numChars, win, gc, x, y, str);
+int matchesWindow(XDrawable* drawable, xcb_window_t win){
+    return drawable->win == win;
 }
 
-void outlineRect(xcb_window_t win, int numRects, const xcb_rectangle_t* rects) {
-    xcb_poly_rectangle(dis, win, gc, numRects, rects);
+void drawText(XDrawable* drawable, int numChars, Color foreground,  int x, int y, const char*str) {
+	XftColor color;
+    XRenderColor r = {((char*)&foreground)[2] << 2, ((char*)&foreground)[1]<< 2, ((char*)&foreground)[0]<< 2, -1};
+	XftColorAllocValue(dpy, DefaultVisual(dpy, DefaultScreen(dpy)), DefaultColormap(dpy, DefaultScreen(dpy)), &r, &color);
+    XftDrawStringUtf8(drawable->draw, &color, font, x, y, str, numChars);
 }
-void setWindowProperties(xcb_window_t win) {
+
+void outlineRect(XDrawable* drawable, Color color, int numRects, const xcb_rectangle_t* rects) {
+    xcb_change_gc(dis, gc, XCB_GC_FOREGROUND, (uint32_t[]){color});
+    xcb_poly_rectangle(dis, drawable->win, gc, numRects, rects);
+}
+
+void updateBackground(XDrawable* drawable, Color color, xcb_rectangle_t* rects) {
+    xcb_change_gc(dis, gc, XCB_GC_FOREGROUND, (uint32_t[]){color});
+    xcb_poly_fill_rectangle(dis, drawable->win, gc, 1, rects);
+}
+
+void setWindowProperties(XDrawable* drawable) {
     xcb_icccm_wm_hints_t hints = {};
     xcb_icccm_wm_hints_set_input(&hints, 0);
-    xcb_icccm_set_wm_hints(dis, win, &hints);
+    xcb_icccm_set_wm_hints(dis, drawable->win, &hints);
     const char classInstance[] = "navboard\0navboard";
-    xcb_icccm_set_wm_class(dis, win, LEN(classInstance), classInstance);
+    xcb_icccm_set_wm_class(dis, drawable->win, LEN(classInstance), classInstance);
     xcb_ewmh_client_source_type_t source = XCB_EWMH_CLIENT_SOURCE_TYPE_NORMAL;
-    xcb_ewmh_set_wm_window_type(ewmh, win, 1, &ewmh->_NET_WM_WINDOW_TYPE_DOCK);
-    xcb_ewmh_request_change_wm_state(ewmh, 0, win, XCB_EWMH_WM_STATE_ADD, ewmh->_NET_WM_STATE_STICKY,
+    xcb_ewmh_set_wm_window_type(ewmh, drawable->win, 1, &ewmh->_NET_WM_WINDOW_TYPE_DOCK);
+    xcb_ewmh_request_change_wm_state(ewmh, 0, drawable->win, XCB_EWMH_WM_STATE_ADD, ewmh->_NET_WM_STATE_STICKY,
         ewmh->_NET_WM_STATE_ABOVE, source);
-}
-
-void updateBackground(xcb_window_t win, int press, xcb_rectangle_t* rects) {
-    xcb_poly_fill_rectangle(dis, win, gcPressed[press], 1, rects);
 }
 int getXFD() {
     return xcb_get_file_descriptor(dis);
@@ -208,3 +248,4 @@ void logError(xcb_generic_error_t* e) {
     printf("error occurred with seq %d resource %d. Error code: %d %s (%d %d)\n", e->sequence, e->resource_id, e->error_code,
         opcodeToString(e->major_code), e->major_code, e->minor_code);
 }
+
