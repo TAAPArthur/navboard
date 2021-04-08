@@ -180,11 +180,13 @@ static void redrawCells(KeyGroup* keyGroup) {
             const char c = getKeyChar((&key->keySym)[keyGroup->level]);
             const char* label = rawLabel ? rawLabel : &c;
             int labelSize = rawLabel ? strlen(rawLabel) : 1;
-            drawText(keyGroup->drawable, labelSize,
+            drawText(keyGroup->drawable, labelSize, label,
                     key->foreground,
-                    keyGroup->rects[n].x + keyGroup->rects[n].width / 2,
-                keyGroup->rects[n].y +  keyGroup->rects[n].height / 2,
-                label);
+                    keyGroup->rects[n].x ,
+                    keyGroup->rects[n].y,
+                    keyGroup->rects[n].width,
+                    keyGroup->rects[n].height
+                );
 
             n++;
         }

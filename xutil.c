@@ -177,11 +177,13 @@ int matchesWindow(XDrawable* drawable, xcb_window_t win){
     return drawable->win == win;
 }
 
-void drawText(XDrawable* drawable, int numChars, Color foreground,  int x, int y, const char*str) {
+void drawText(XDrawable* drawable, int numChars, const char*str, Color foreground,  int x, int y, int width, int height) {
 	XftColor color;
     XRenderColor r = {((char*)&foreground)[2] << 2, ((char*)&foreground)[1]<< 2, ((char*)&foreground)[0]<< 2, -1};
 	XftColorAllocValue(dpy, DefaultVisual(dpy, DefaultScreen(dpy)), DefaultColormap(dpy, DefaultScreen(dpy)), &r, &color);
-    XftDrawStringUtf8(drawable->draw, &color, font, x, y, str, numChars);
+    XGlyphInfo info;
+    XftTextExtentsUtf8(dpy, font, str, numChars, &info);
+    XftDrawStringUtf8(drawable->draw, &color, font, x + width/2 - info.width/2, y + height/2 + info.height /2, str, numChars);
 }
 
 void outlineRect(XDrawable* drawable, Color color, int numRects, const xcb_rectangle_t* rects) {

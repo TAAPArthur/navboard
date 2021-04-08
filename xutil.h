@@ -11,7 +11,7 @@ char getKeyChar(xcb_keysym_t sym);
 
 int getKeyCode(KeySym targetSym, xcb_keysym_t** foundSym);
 
-void drawText(XDrawable* win, int numChars, Color foreground, int x, int y, const char*str);
+void drawText(XDrawable* win, int numChars, const char*str, Color foreground, int x, int y, int w, int h);
 
 void outlineRect(XDrawable* win, Color color,  int numRects, const xcb_rectangle_t* rects);
 
