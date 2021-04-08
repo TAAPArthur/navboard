@@ -1,6 +1,7 @@
 #include <X11/X.h>
 #include <X11/Xlib.h>
 #include <assert.h>
+#include <math.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -14,7 +15,7 @@
 #include "util.h"
 
 Board boards[MAX_BOARDS];
-int numBoards;
+int numBoards = 0;
 static int activeIndex;
 
 Board* getActiveBoard() {
@@ -204,7 +205,6 @@ void configureNotify(xcb_configure_notify_event_t* event) {
     if(keyGroup) {
         keyGroup->windowHeight = event->height;
         keyGroup->windowWidth = event->width;
-
         computeRects(keyGroup);
         redrawCells(keyGroup);
     }
@@ -230,6 +230,8 @@ void triggerCell(KeyGroup*keyGroup, Key*key, char press) {
     if(hasLatchFlag(key) && !press)
         return;
     key->pressed = hasLatchFlag(key) ? !key->pressed: press;
+    updateBackground(keyGroup->drawable, key->background[key->pressed], &keyGroup->rects[key->index]);
+    redrawCells(keyGroup);
     if(press && key->onPress)
         key->onPress(keyGroup, key);
     else if(!press && key->onRelease) {
@@ -237,7 +239,6 @@ void triggerCell(KeyGroup*keyGroup, Key*key, char press) {
     }
 
 
-    updateBackground(keyGroup->drawable, key->background[key->pressed], &keyGroup->rects[key->index]);
 }
 
 void pressAllModifiers(KeyGroup*keyGroup, int press) {
@@ -276,10 +277,15 @@ void buttonEvent(xcb_button_press_event_t* event) {
     KeyGroup*keyGroup = getKeyGroupForWindow(event->event);
     Key* key = findKey(keyGroup, event->event_x, event->event_y);
     triggerCell(keyGroup, key, press);
-    redrawCells(keyGroup);
 }
 
 
+void destroyWindowsForBoard(Board*board) {
+    for(int i = 0; i < board->groupSize; i++) {
+        KeyGroup* keyGroup=&board->keyGroup[i];
+        destroyWindow(keyGroup->drawable);
+    }
+}
 void setupWindowsForBoard(Board*board) {
     setFont(board->fontName);
     for(int i = 0; i < board->groupSize; i++) {
@@ -291,6 +297,38 @@ void setupWindowsForBoard(Board*board) {
     }
 }
 
+int activeBoardByName(const char*name) {
+    Board*board = getActiveBoard();
+    if(setActiveBoard(name)) {
+        if(board != getActiveBoard()) {
+            destroyWindowsForBoard(board);
+            setupWindowsForBoard(getActiveBoard());
+        }
+        return 1;
+    }
+    return 0;
+}
+void activateBoard(KeyGroup*keyGroup, Key*key) {
+    activeBoardByName(key->label);
+}
+
+void createBoardOrBoards() {
+    int numRows = sqrt(numBoards);
+    int numColumns = numBoards / numRows;
+    int numKeys =numRows + numBoards - 1;
+    printf("%d %d %d %d\n", numRows, numColumns, numKeys, numBoards);
+    Key* keys = calloc(numKeys, sizeof(Key));
+    for(int i = 0, r = 0, n = 0; r < numRows; i++, r++) {
+        for(int c = 0; c < numColumns; c++, i++) {
+            printf("%d %s\n",i, boards[n].name);
+            keys[i].label = boards[n++].name;
+            keys[i].onPress = activateBoard;
+        }
+    }
+
+    boards[numBoards++] = CREATE_BOARD("board_of_boards", keys, numKeys);
+}
+
 void init() {
     initConnection();
     initBoards();
@@ -298,6 +336,7 @@ void init() {
 }
 
 int __attribute__((weak)) main(int argc, const char* args[]) {
+    createBoardOrBoards();
     if(argc >1)
         if(!setActiveBoard(args[1]))
             exit(1);

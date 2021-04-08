@@ -28,6 +28,7 @@ void processAllQueuedEvents();
 
 void logError(xcb_generic_error_t* e);
 
+void destroyWindow(XDrawable* drawable);
 void mapWindow(XDrawable* drawable);
 int xFlush();
 

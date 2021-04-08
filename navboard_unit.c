@@ -96,7 +96,7 @@ SCUTEST(test_latch) {
     init();
     Key keys[] = { {.label="A", .flags=LATCH} };
 
-    Board board = CREATE_BOARD("name", keys);
+    Board board = CREATE_BOARD("name", keys, LEN(keys));
     initBoard(&board);
     computeRects(board.keyGroup);
     setupWindowsForBoard(&board);
