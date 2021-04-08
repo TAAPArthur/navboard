@@ -33,5 +33,6 @@ void mapWindow(XDrawable* drawable);
 int xFlush();
 
 void setFont(const char* fontName);
+void grabSelection();
 #endif
 

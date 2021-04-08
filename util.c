@@ -29,6 +29,10 @@ int spawn(const char* command) {
     return waitForChild(pid);
 }
 
+void quit() {
+    exit(0);
+}
+
 struct {
     struct pollfd pollFDs[NUM_FD_LISTENERS];
     void(*extraEventCallBacks[NUM_FD_LISTENERS])();

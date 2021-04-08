@@ -230,6 +230,15 @@ void processAllQueuedEvents() {
     xFlush();
 }
 
+void grabSelection() {
+    const char* name = "OSK";
+    xcb_intern_atom_reply_t* reply;
+    reply = xcb_intern_atom_reply(dis, xcb_intern_atom(dis, 0, strlen(name), name), NULL);
+    xcb_atom_t atom = reply->atom;
+    free(reply);
+    xcb_set_selection_owner(dis, root, atom, XCB_CURRENT_TIME);
+}
+
 
 #define _ADD_EVENT_TYPE_CASE(TYPE) case TYPE: return #TYPE
 const char* opcodeToString(int opcode) {

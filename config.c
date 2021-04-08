@@ -1,11 +1,13 @@
-#include "navboard.h"
 #include "config.h"
+#include "navboard.h"
+#include "util.h"
 #include "xutil.h"
 
 void(*xEventHandlers[MAX_X_EVENTS])() = {
     [0] = logError,
     [XCB_BUTTON_PRESS] = buttonEvent,
     [XCB_BUTTON_RELEASE] = buttonEvent,
+    [XCB_SELECTION_CLEAR] = quit,
     [XCB_EXPOSE] = exposeEvent,
     [XCB_CONFIGURE_NOTIFY] = configureNotify,
 };

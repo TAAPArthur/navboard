@@ -341,6 +341,7 @@ int __attribute__((weak)) main(int argc, const char* args[]) {
         if(!setActiveBoard(args[1]))
             exit(1);
     init();
+    grabSelection();
     setupWindowsForBoard(getActiveBoard());
     xFlush();
     while(1) {
