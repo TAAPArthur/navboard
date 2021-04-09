@@ -331,11 +331,19 @@ void init() {
     addExtraEvent(getXFD(), processAllQueuedEvents);
 }
 
+void listBoards() {
+    for(int i=0;i<numBoards;i++)
+        printf("%s\n", boards[i].name);
+}
+
 int __attribute__((weak)) main(int argc, const char* args[]) {
     createBoardOrBoards();
     if(argc >1)
-        if(!setActiveBoard(args[1]))
+        if(!setActiveBoard(args[1])) {
+            printf("Unknown board %s; Valid names are:\n", args[1]);
+            listBoards();
             exit(1);
+        }
     init();
     grabSelection();
     setupWindowsForBoard(getActiveBoard());
