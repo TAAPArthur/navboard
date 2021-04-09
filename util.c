@@ -14,10 +14,9 @@ int waitForChild(int pid) {
     int exitCode = WIFEXITED(status) ? WEXITSTATUS(status) : WIFSIGNALED(status) ? WTERMSIG(status) : -1;
     return exitCode;
 }
-int spawn(const char* command) {
+int spawnArgs(const char* const args[]) {
     int pid = fork();
     if(pid == 0) {
-        const char* const args[] = {SHELL, "-c", command, NULL};
         execv(args[0], (char* const*)args);
         perror("exec failed; Aborting");
         exit(2);
@@ -27,6 +26,10 @@ int spawn(const char* command) {
         exit(2);
     }
     return waitForChild(pid);
+}
+int spawn(const char* command) {
+    const char* const args[] = {SHELL, "-c", command, NULL};
+    return spawnArgs(args);
 }
 
 void quit() {
