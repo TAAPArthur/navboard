@@ -14,9 +14,12 @@ all: $(BIN)
 
 install: $(BIN)
 	install -m 0755 -Dt "$(DESTDIR)/usr/bin/" $(BIN)
+	install -m 0755 -D $(BIN)-local.sh "$(DESTDIR)/usr/bin/$(BIN)-local"
+	install -m 0755 -Dt "$(DESTDIR)/usr/include/navboard/" *.h
 
 uninstall:
 	rm -f "$(DESTDIR)/usr/bin/$(BIN)"
+	rm -f "$(DESTDIR)/usr/bin/$(BIN)-local"
 
 navboard: $(SRCS:.c=.o) $(BOARDS_OBJ)
 	$(CC) $(CFLAGS) $^   -o $@ $(LDFLAGS) -lscutest
