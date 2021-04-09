@@ -13,7 +13,6 @@ void(*xEventHandlers[MAX_X_EVENTS])() = {
 };
 
 Key defaults[] = {
-    {XK_space,      .label=" "},
     {XK_Alt_L,      .label="Alt"  ,  .flags = MOD | LATCH },
     {XK_Alt_R,      .label="Alt"  ,  .flags = MOD | LATCH },
     {XK_Control_L,  .label="Ctrl" ,  .flags = MOD | LATCH },
@@ -28,6 +27,7 @@ Key defaults[] = {
     {XK_Shift_Lock, .label="Shift", .onPress = shiftKeys,  .flags = MOD | LATCH | LOCK },
     {XK_Super_L,    .label="Super",  .flags = MOD | LATCH },
     {XK_Super_R,    .label="Super",  .flags = MOD | LATCH },
+    {XK_space,      .label=" ", .onPress=sendKeyPressWithModifiers, .onRelease = sendKeyReleaseWithModifiers},
     {-1 , .onPress=sendKeyPressWithModifiers, .onRelease = sendKeyReleaseWithModifiers},
     {0}
 };

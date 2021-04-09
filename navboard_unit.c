@@ -33,7 +33,7 @@ SCUTEST(init_boards) {
                 if(key->keySym)
                     assert(key->keyCode);
                 assert(key->weight);
-                assert(key->onPress || key->onRelease);
+                assert(key->onPress || key->onRelease || key->flags & MOD);
             }
         }
     }
