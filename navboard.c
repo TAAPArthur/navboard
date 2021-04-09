@@ -219,14 +219,15 @@ void triggerCell(KeyGroup*keyGroup, Key*key, char press) {
     if(hasLatchFlag(key) && !press)
         return;
     key->pressed = hasLatchFlag(key) ? !key->pressed: press;
-    updateBackground(keyGroup->drawable, key->background[key->pressed], &keyGroup->rects[key->index]);
-    redrawCells(keyGroup);
+    Board * board = getActiveBoard();
     if(press && key->onPress)
         key->onPress(keyGroup, key);
-    else if(!press && key->onRelease) {
+    else if(!press && key->onRelease)
         key->onRelease(keyGroup, key);
+    if(board == getActiveBoard()) {
+        updateBackground(keyGroup->drawable, key->background[key->pressed], &keyGroup->rects[key->index]);
+        redrawCells(keyGroup);
     }
-
 
 }
 
@@ -236,7 +237,6 @@ void pressAllModifiers(KeyGroup*keyGroup, int press) {
             sendKeyEvent(press, keyGroup->keys[i].keyCode);
             if(!press && (keyGroup->keys[i].flags & LATCH)&& !(keyGroup->keys[i].flags & LOCK)) {
                 keyGroup->keys[i].pressed = 0;
-                updateBackground(keyGroup->drawable, keyGroup->keys[i].background[0], &keyGroup->rects[keyGroup->keys[i].index]);
             }
         }
     }
