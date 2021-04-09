@@ -272,7 +272,6 @@ void sendKeyPressWithModifiers(KeyGroup*keyGroup, Key*key){
 }
 
 void buttonEvent(xcb_button_press_event_t* event) {
-    //printf("Button event %d\n", event->detail);
     char press = event->response_type == XCB_BUTTON_PRESS;
     KeyGroup*keyGroup = getKeyGroupForWindow(event->event);
     Key* key = findKey(keyGroup, event->event_x, event->event_y);
@@ -313,19 +312,16 @@ void activateBoard(KeyGroup*keyGroup, Key*key) {
 }
 
 void createBoardOrBoards() {
-    int numRows = sqrt(numBoards);
-    int numColumns = numBoards / numRows;
-    int numKeys =numRows + numBoards - 1;
-    printf("%d %d %d %d\n", numRows, numColumns, numKeys, numBoards);
+    int numColumns = 3;
+    int numRows = numBoards / numColumns;
+    int numKeys = numBoards + numRows;
     Key* keys = calloc(numKeys, sizeof(Key));
-    for(int i = 0, r = 0, n = 0; r < numRows; i++, r++) {
-        for(int c = 0; c < numColumns; c++, i++) {
-            printf("%d %s\n",i, boards[n].name);
+    for(int i = 0, n = 0; i < numKeys; i++) {
+        for(int c = 0; c < numColumns && i < numKeys; c++, i++) {
             keys[i].label = boards[n++].name;
             keys[i].onPress = activateBoard;
         }
     }
-
     boards[numBoards++] = CREATE_BOARD("board_of_boards", keys, numKeys);
 }
 
