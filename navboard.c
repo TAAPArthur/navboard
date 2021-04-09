@@ -64,7 +64,7 @@ int getNumRows(KeyGroup* keyGroup) {
     return rows;
 }
 
-int initKeys(Key* keys, int n, int level) {
+int initKeys(Key* keys, int n) {
     int i, j;
     for(i = 0, j = 0; i < n; i++) {
         if(isRowSeperator(&keys[i]))
@@ -91,18 +91,7 @@ int initKeys(Key* keys, int n, int level) {
 
 void initKeyGroup(KeyGroup* keyGroup) {
     keyGroup->numRows = getNumRows(keyGroup);
-    /*
-    if(!layouts[i].shiftKeys) {
-        Key* shiftKeys = malloc(numKeys * sizeof(Key));
-        memcpy(shiftKeys, layouts[i].keys, numKeys * sizeof(Key));
-        layouts[i].shiftKeys = shiftKeys;
-        initKeys(keyboard_mapping, layouts[i].shiftKeys, numKeys, 1);
-    }
-    else {
-        initKeys(keyboard_mapping, layouts[i].shiftKeys, numKeys, 0);
-    }
-    */
-    initKeys(keyGroup->keys, keyGroup->numKeys, 0);
+    initKeys(keyGroup->keys, keyGroup->numKeys);
 }
 void initBoard(Board* board) {
     for(int n = 0; n < board->groupSize; n++) {

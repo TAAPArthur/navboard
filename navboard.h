@@ -62,7 +62,6 @@ typedef struct Layout {
     KeyGroup keyGroup[1];
     const char*name;
     const char*fontName;
-    // Key* shiftKeys;
 } Board;
 extern Board boards[MAX_BOARDS];
 extern int numBoards;
@@ -101,7 +100,7 @@ void shiftKeys(KeyGroup*keyGroup, Key*key);
 #define _CAT(x, y) __CAT(x, y)
 
 #define CREATE_BOARD(NAME, BOARD, NUM_KEYS) (Board)\
-{1, (KeyGroup){BOARD, NUM_KEYS, .dockType=DEFAULT_DOCK_TYPE, .thicknessPercent = DEFAULT_THICKNESS}, .name=NAME, .fontName=DEFAULT_FONT }
+{1, {(KeyGroup){BOARD, NUM_KEYS, .dockType=DEFAULT_DOCK_TYPE, .thicknessPercent = DEFAULT_THICKNESS}}, .name=NAME, .fontName=DEFAULT_FONT }
 
 //##define REGISTER(B) REGISTER(B, B)
 #define REGISTER(NAME, BOARD) \

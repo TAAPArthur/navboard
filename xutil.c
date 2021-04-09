@@ -168,7 +168,7 @@ int getKeyCode(KeySym targetSym, xcb_keysym_t** foundSym) {
             }
         }
     }
-    printf("Could not find %d %s\n",targetSym, XKeysymToString(targetSym));
+    printf("Could not find %ld %s\n",targetSym, XKeysymToString(targetSym));
     assert(0);
     return 0;
 }

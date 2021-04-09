@@ -1,6 +1,5 @@
-CC := gcc
-DEBUGGING_FLAGS := -std=c99 -g -rdynamic -O0 -Werror -Wno-missing-field-initializers -Wno-sign-compare -Wno-missing-braces
-RELEASE_FLAGS ?= -std=c99 -O3 -DNDEBUG -Werror -Wall -Wextra -Wno-missing-field-initializers -Wno-sign-compare -Wno-missing-braces
+DEBUGGING_FLAGS := -std=c99 -g -rdynamic -O0 -Werror -Wno-missing-field-initializers -Wno-sign-compare
+RELEASE_FLAGS ?= -std=c99 -O3 -DNDEBUG -Werror -Wno-missing-field-initializers -Wno-sign-compare -Wno-missing-braces
 CFLAGS ?= $(RELEASE_FLAGS)
 SRCS := config.c util.c navboard.c xutil.c
 BIN := navboard
@@ -8,7 +7,6 @@ BOARDS ?= $(wildcard boards/*.c)
 BOARDS_OBJ ?= $(BOARDS:.c=.o)
 
 LDFLAGS := -lX11 -lxcb -lxcb-ewmh -lxcb-icccm -lxcb-xtest -lX11-xcb -lXft -lm
-
 
 all: $(BIN)
 
@@ -27,13 +25,13 @@ navboard: $(SRCS:.c=.o) $(BOARDS_OBJ)
 navboard-test: navboard_unit.c $(SRCS) $(BOARDS_OBJ)
 	$(CC) $(DEBUGGING_FLAGS) $^ -o $@ $(LDFLAGS) -lscutest
 
-CFLAGS := $(DEBUGGING_FLAGS)
+test: CFLAGS := $(DEBUGGING_FLAGS)
 test: navboard-test
 	xvfb-run -w 1 -a ./$^
 
 clean:
-	rm -f *.{o,a} *-test $(BIN)
-	rm -f boards/*.{o,a} *-test
+	find . -name "*.o" -exec rm {} +
+	rm -f *-test $(BIN)
 
 .PHONY: clean install uninstall install-headers
 
