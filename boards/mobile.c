@@ -1,0 +1,53 @@
+#include "../navboard.h"
+Key keys_mobile[] = {
+    {XK_1},
+    {XK_2},
+    {XK_3},
+    {XK_4},
+    {XK_5},
+    {XK_6},
+    {XK_7},
+    {XK_8},
+    {XK_9},
+    {XK_0},
+    {XK_BackSpace, .weight = 2},
+    {0 }, /* New row */
+    {XK_Tab, .weight = 1},
+    {XK_q},
+    {XK_w},
+    {XK_e},
+    {XK_r},
+    {XK_t},
+    {XK_y},
+    {XK_u},
+    {XK_i},
+    {XK_o},
+    {XK_p},
+    {0}, /* New row */
+    {XK_Shift_L, .label="Shift Lock", .weight = 1, .flags = LOCK},
+    {XK_a},
+    {XK_s},
+    {XK_d},
+    {XK_f},
+    {XK_g},
+    {XK_h},
+    {XK_j},
+    {XK_k},
+    {XK_l},
+    {XK_Return, .weight = 1},
+    {0}, /* New row */
+    {XK_Shift_L, .weight = 1},
+    {XK_z},
+    {XK_x},
+    {XK_c},
+    {XK_v},
+    {XK_b},
+    {XK_n},
+    {XK_m},
+    {0}, /* New row */
+    {XK_comma, .weight = 1},
+    {XK_space, .weight = 5},
+    {XK_period, .weight = 1},
+};
+
+REGISTER(mobile, keys_mobile);
