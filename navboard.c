@@ -336,11 +336,33 @@ void listBoards() {
         printf("%s\n", boards[i].name);
 }
 
+void usage() {
+    printf("navboard [-l] [name]\n Where name is one of:\n");
+    listBoards();
+}
+
 int __attribute__((weak)) main(int argc, const char* args[]) {
     createBoardOrBoards();
-    if(argc >1)
-        if(!setActiveBoard(args[1])) {
-            printf("Unknown board %s; Valid names are:\n", args[1]);
+    int i;
+    for(i=1; i < argc; i++) {
+        if(args[i][0] == '-')
+            switch(args[i][1]) {
+                case 'l':
+                    listBoards();
+                    exit(0);
+                    break;
+                case 'h':
+                    usage();
+                    exit(0);
+                default:
+                    break;
+            }
+        else
+            break;
+    }
+    if(args[i])
+        if(!setActiveBoard(args[i])) {
+            printf("Unknown board %s; Valid names are:\n", args[i]);
             listBoards();
             exit(1);
         }
