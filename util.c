@@ -3,7 +3,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <sys/wait.h>
-#include <sys/poll.h>
+#include <poll.h>
 #include <unistd.h>
 #include "config.h"
 #include "util.h"
