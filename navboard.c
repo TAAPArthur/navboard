@@ -356,9 +356,11 @@ int __attribute__((weak)) main(int argc, const char* args[]) {
         else
             break;
     }
-    if(args[i])
-        if(!setActiveBoard(args[i])) {
-            printf("Unknown board %s; Valid names are:\n", args[i]);
+    const char*activeBoardName = args[i]? args[i] : getenv("NAVBOARD_DEFAULT")? getenv("NAVBOARD_DEFAULT"): NULL;
+
+    if(activeBoardName)
+        if(!setActiveBoard(activeBoardName)) {
+            printf("Unknown board %s; Valid names are:\n", activeBoardName);
             listBoards();
             exit(1);
         }
