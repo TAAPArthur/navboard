@@ -1,21 +1,18 @@
-#ifndef MYVKBD_H
-#define MYVKBD_H
+#ifndef NAVBOARD_H
+#define NAVBOARD_H
 #include <X11/X.h>
 #include <X11/keysym.h>
 #include <X11/keysymdef.h>
 #include <xcb/xcb.h>
+#include "common.h"
 #include "config.h"
 
-#define LEN(x)         (sizeof x / sizeof x[0])
 
 #define SHIFT   (1<<0)
 #define LOCK    (1<<1)
 #define MOD     (1<<2)
 #define LATCH   (1<<3)
 
-typedef struct xdrawable XDrawable;
-
-typedef uint32_t Color;
 typedef struct {
     KeySym keySym;
     KeySym keySymShift;
@@ -36,10 +33,6 @@ typedef struct {
     KeyCode keyCode;
 } Key;
 
-typedef enum DockType {
-    LEFT, RIGHT, TOP, BOTTOM
-} DockType;
-
 typedef struct {
     Key* keys;
     int numKeys;
@@ -49,12 +42,9 @@ typedef struct {
     XDrawable* drawable;
     short windowWidth;
     short windowHeight;
-    int thicknessPercent;
-    DockType dockType;
-    short start;
-    short end;
-    uint32_t outlineColor;
     int level;
+    DockProperties dockProperties;
+    uint32_t outlineColor;
 } KeyGroup;
 
 typedef struct Layout {
@@ -88,7 +78,6 @@ void sendKeyRelease(Key*key);
 void setupWindowsForBoard(Board*board);
 void triggerCell(KeyGroup*keyGroup, Key*key, char press);
 
-extern void(*xEventHandlers[])();
 extern Key defaults[];
 
 void buttonEvent(xcb_button_press_event_t* event);
@@ -99,12 +88,17 @@ void shiftKeys(KeyGroup*keyGroup, Key*key);
 #define __CAT(x, y) x ## y
 #define _CAT(x, y) __CAT(x, y)
 
-#define CREATE_BOARD(NAME, BOARD, NUM_KEYS) (Board)\
-{1, {(KeyGroup){BOARD, NUM_KEYS, .dockType=DEFAULT_DOCK_TYPE, .thicknessPercent = DEFAULT_THICKNESS}}, .name=NAME, .fontName=DEFAULT_FONT }
 
-//##define REGISTER(B) REGISTER(B, B)
-#define REGISTER(NAME, BOARD) \
-__attribute__((constructor)) void __CAT(setup, NAME) () { boards[numBoards++] = CREATE_BOARD(#NAME, BOARD, LEN(BOARD));}
+#define CREATE_KEYGROUP(KEYS, NUM_KEYS) (KeyGroup)\
+    (KeyGroup){KEYS, NUM_KEYS, .dockProperties={.type=DEFAULT_DOCK_TYPE, .thicknessPercent = DEFAULT_THICKNESS}}
 
+#define CREATE_BOARD(NAME, KEYS, NUM_KEYS) (Board)\
+{1, {CREATE_KEYGROUP(KEYS, NUM_KEYS)}, .name=NAME, .fontName=DEFAULT_FONT }
+
+#define REGISTER(NAME, KEYS) \
+    REGISTER_BOARD(NAME, CREATE_BOARD(#NAME, KEYS, LEN(KEYS)))
+
+#define REGISTER_BOARD(NAME, BOARD) \
+__attribute__((constructor)) void __CAT(setup, NAME) () { boards[numBoards++] = BOARD;}
 
 #endif

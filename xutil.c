@@ -10,10 +10,12 @@
 #include <xcb/xcb_ewmh.h>
 #include <xcb/xcb_icccm.h>
 #include <xcb/xtest.h>
-#include "xutil.h"
-#include "config.h"
 #include <X11/Xft/Xft.h>
 #include <X11/Xlib-xcb.h>
+
+#include "xutil.h"
+#include "config.h"
+
 Display* dpy;
 xcb_connection_t* dis;
 xcb_window_t root;
@@ -101,18 +103,19 @@ void mapWindow(XDrawable* drawable){
     xcb_map_window(dis, drawable->win);
 }
 
-void updateDockProperties(XDrawable* drawable, DockType dockType, int thicknessPercent, int start, int end) {
-    int dockProperties[4] = {0};
-    if(end == 0) {
-        end = rootDims[dockType < TOP];
-    }
+
+void updateDockProperties(XDrawable* drawable, DockProperties dockProperties){
+    DockType dockType = dockProperties.type;
+    int start = dockProperties.start;
+    int end = dockProperties.end == 0 ? rootDims[dockType < TOP] : dockProperties.end;
+    int wmStructFields[4] = {0};
     int x,y;
     short width, height;
     if(dockType < TOP) {
-        width = dockProperties[dockType] = rootDims[0] * thicknessPercent / 100;
+        width = wmStructFields[dockType] = rootDims[0] * dockProperties.thicknessPercent / 100;
         height = end - start;
     } else {
-        height = dockProperties[dockType] = rootDims[1] * thicknessPercent / 100;
+        height = wmStructFields[dockType] = rootDims[1] * dockProperties.thicknessPercent / 100;
         width = end - start;
     }
 
@@ -134,7 +137,7 @@ void updateDockProperties(XDrawable* drawable, DockType dockType, int thicknessP
     uint32_t mask = XCB_CONFIG_WINDOW_X | XCB_CONFIG_WINDOW_Y | XCB_CONFIG_WINDOW_WIDTH | XCB_CONFIG_WINDOW_HEIGHT;
     uint32_t values[4] = {x, y, width, height};
 
-    xcb_ewmh_set_wm_strut(ewmh, drawable->win, dockProperties[0], dockProperties[1], dockProperties[2], dockProperties[3]);
+    xcb_ewmh_set_wm_strut(ewmh, drawable->win, wmStructFields[0], wmStructFields[1], wmStructFields[2], wmStructFields[3]);
     xcb_configure_window(dis, drawable->win, mask, values);
 }
 

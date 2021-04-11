@@ -200,7 +200,7 @@ void configureNotify(xcb_configure_notify_event_t* event) {
         setRootDims( event->width, event->height);
         for(int i = 0; i < getActiveBoard()->groupSize; i++) {
             KeyGroup* keyGroup=&getActiveBoard()->keyGroup[i];
-            updateDockProperties(keyGroup->drawable, keyGroup->dockType, keyGroup->thicknessPercent, keyGroup->start, keyGroup->end);
+            updateDockProperties(keyGroup->drawable, keyGroup->dockProperties);
         }
         xFlush();
     }
@@ -287,7 +287,7 @@ void setupWindowsForBoard(Board*board) {
         KeyGroup* keyGroup=&board->keyGroup[i];
         keyGroup->drawable=createWindow();
         setWindowProperties(keyGroup->drawable);
-        updateDockProperties(keyGroup->drawable, keyGroup->dockType, keyGroup->thicknessPercent, keyGroup->start, keyGroup->end);
+        updateDockProperties(keyGroup->drawable, keyGroup->dockProperties);
         mapWindow(keyGroup->drawable);
     }
 }

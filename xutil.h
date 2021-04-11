@@ -1,6 +1,6 @@
 #ifndef NAVBOARD_XUTIL_H
 #define NAVBOARD_XUTIL_H
-#include "navboard.h"
+#include "common.h"
 
 void initConnection(void);
 
@@ -18,7 +18,7 @@ void outlineRect(XDrawable* win, Color color,  int numRects, const xcb_rectangle
 
 void setWindowProperties(XDrawable* win);
 
-void updateDockProperties(XDrawable* win, DockType dockType, int thicknessPercent, int start, int end);
+void updateDockProperties(XDrawable* drawable, DockProperties dockProperties);
 
 void updateBackground(XDrawable* win, Color color, xcb_rectangle_t* rects);
 int matchesWindow(XDrawable* drawable,xcb_window_t win);

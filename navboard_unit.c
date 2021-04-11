@@ -24,7 +24,7 @@ SCUTEST(init_boards) {
         for(int j = 0; j < boards[i].groupSize; j++) {
             assert(boards[i].keyGroup[j].numKeys);
             assert(boards[i].keyGroup[j].numRows);
-            assert(boards[i].keyGroup[j].thicknessPercent);
+            assert(boards[i].keyGroup[j].dockProperties.thicknessPercent);
             for(int n = 0; n < boards[i].keyGroup[j].numKeys; n++) {
                 Key*key = boards[i].keyGroup[j].keys + n;
                 if(isRowSeperator(key))
