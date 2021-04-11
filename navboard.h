@@ -89,11 +89,14 @@ void shiftKeys(KeyGroup*keyGroup, Key*key);
 #define _CAT(x, y) __CAT(x, y)
 
 
-#define CREATE_KEYGROUP(KEYS, NUM_KEYS) (KeyGroup)\
-    (KeyGroup){KEYS, NUM_KEYS, .dockProperties={.type=DEFAULT_DOCK_TYPE, .thicknessPercent = DEFAULT_THICKNESS}}
+#define CREATE_KEYGROUP(KEYS, NUM_KEYS, TYPE, START, END, THICKNESS, OUTLINE_COLOR) (KeyGroup)\
+    {KEYS, NUM_KEYS, .dockProperties={.type=TYPE, .start=START, .end=END, .thicknessPercent = THICKNESS}, .outlineColor=OUTLINE_COLOR}
+
+#define CREATE_DEFAULT_KEYGROUP(KEYS, NUM_KEYS) \
+    CREATE_KEYGROUP(KEYS, NUM_KEYS, DEFAULT_DOCK_TYPE, 0, 0, DEFAULT_THICKNESS, DEFAULT_OUTLINE_COLOR)
 
 #define CREATE_BOARD(NAME, KEYS, NUM_KEYS) (Board)\
-{1, {CREATE_KEYGROUP(KEYS, NUM_KEYS)}, .name=NAME, .fontName=DEFAULT_FONT }
+{1, {CREATE_DEFAULT_KEYGROUP(KEYS, NUM_KEYS)}, .name=NAME, .fontName=DEFAULT_FONT }
 
 #define REGISTER(NAME, KEYS) \
     REGISTER_BOARD(NAME, CREATE_BOARD(#NAME, KEYS, LEN(KEYS)))
