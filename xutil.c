@@ -14,7 +14,6 @@
 #include <X11/Xlib-xcb.h>
 
 #include "xutil.h"
-#include "config.h"
 
 Display* dpy;
 xcb_connection_t* dis;
@@ -81,13 +80,12 @@ void destroyWindow(XDrawable* drawable){
     xcb_destroy_window(dis, drawable->win);
 }
 
-XDrawable* createWindow(){
+XDrawable* createWindow(uint32_t windowMasks){
     xcb_window_t win = xcb_generate_id(dis);
-    uint32_t windowValues[] = {WINDOW_MASKS};
     xcb_create_window(dis, XCB_COPY_FROM_PARENT, win, root, 0, 0, 10, 10,
         0, XCB_WINDOW_CLASS_INPUT_OUTPUT,
         screen->root_visual,
-        XCB_CW_EVENT_MASK, windowValues);
+        XCB_CW_EVENT_MASK, &windowMasks);
 
     XDrawable* drawable = malloc(sizeof(XDrawable));
 
@@ -229,11 +227,10 @@ int xFlush() {
     return xcb_flush(dis);
 }
 
-
-
 void processEvent(xcb_generic_event_t* event) {
-    if(event->response_type < MAX_X_EVENTS && xEventHandlers[event->response_type])
-        xEventHandlers[event->response_type](event);
+    char type = event->response_type & 127;
+    if(xEventHandlers[type])
+        xEventHandlers[type](event);
 }
 void processAllQueuedEvents() {
     xcb_generic_event_t* event = xcb_poll_for_event(dis);

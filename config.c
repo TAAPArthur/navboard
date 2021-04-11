@@ -3,7 +3,7 @@
 #include "util.h"
 #include "xutil.h"
 
-void(*xEventHandlers[MAX_X_EVENTS])() = {
+void(*xEventHandlers[LASTEvent])() = {
     [0] = logError,
     [XCB_BUTTON_PRESS] = buttonEvent,
     [XCB_BUTTON_RELEASE] = buttonEvent,

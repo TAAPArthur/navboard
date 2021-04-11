@@ -5,7 +5,7 @@
 void initConnection(void);
 
 void sendKeyEvent(char press, KeyCode keyCode);
-XDrawable* createWindow(void);
+XDrawable* createWindow(uint32_t windowMasks);
 void setRootDims(uint16_t width, uint16_t height);
 
 char getKeyChar(xcb_keysym_t sym);
