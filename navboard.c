@@ -196,6 +196,13 @@ void configureNotify(xcb_configure_notify_event_t* event) {
         keyGroup->windowWidth = event->width;
         computeRects(keyGroup);
         redrawCells(keyGroup);
+    } else {
+        setRootDims( event->width, event->height);
+        for(int i = 0; i < getActiveBoard()->groupSize; i++) {
+            KeyGroup* keyGroup=&getActiveBoard()->keyGroup[i];
+            updateDockProperties(keyGroup->drawable, keyGroup->dockType, keyGroup->thicknessPercent, keyGroup->start, keyGroup->end);
+        }
+        xFlush();
     }
 }
 

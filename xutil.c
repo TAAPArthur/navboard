@@ -23,6 +23,7 @@ xcb_gcontext_t  gc;
 const xcb_setup_t* xSetup;
 xcb_get_keyboard_mapping_reply_t* keyboard_mapping;
 XftFont* font;
+uint32_t rootDims[2];
 
 struct xdrawable {
     xcb_window_t win;
@@ -36,19 +37,30 @@ void initConnection() {
         exit(1);
     }
     dis = XGetXCBConnection(dpy);
+    XSetEventQueueOwner(dpy, XCBOwnsEventQueue);
     //dis = xcb_connect(NULL, NULL);
     ewmh = (xcb_ewmh_connection_t*)malloc(sizeof(xcb_ewmh_connection_t));
     xcb_intern_atom_cookie_t* cookie = xcb_ewmh_init_atoms(dis, ewmh);
     xcb_ewmh_init_atoms_replies(ewmh, cookie, NULL);
     screen = ewmh->screens[0];
     root = screen->root;
+    setRootDims(screen->width_in_pixels, screen->height_in_pixels);
 
     gc = xcb_generate_id(dis);
     uint32_t value[]  = { 0xfefefe, 0x14313d};
     xcb_create_gc(dis, gc, root, XCB_GC_FOREGROUND | XCB_GC_BACKGROUND , value);
     xSetup      = xcb_get_setup(dis);
+
     keyboard_mapping = xcb_get_keyboard_mapping_reply(dis, xcb_get_keyboard_mapping(dis, xSetup->min_keycode,
                 xSetup->max_keycode - xSetup->min_keycode + 1), NULL);
+
+    int mask = XCB_EVENT_MASK_STRUCTURE_NOTIFY;
+    xcb_change_window_attributes(dis, root, XCB_CW_EVENT_MASK, &mask);
+}
+
+void setRootDims(uint16_t width, uint16_t height){
+    rootDims[0] = width;
+    rootDims[1] = height;
 }
 
 void closeConnection() {
@@ -92,15 +104,15 @@ void mapWindow(XDrawable* drawable){
 void updateDockProperties(XDrawable* drawable, DockType dockType, int thicknessPercent, int start, int end) {
     int dockProperties[4] = {0};
     if(end == 0) {
-        end = (&screen->width_in_pixels)[dockType < TOP];
+        end = rootDims[dockType < TOP];
     }
     int x,y;
     short width, height;
     if(dockType < TOP) {
-        width = dockProperties[dockType] = screen->width_in_pixels * thicknessPercent / 100;
+        width = dockProperties[dockType] = rootDims[0] * thicknessPercent / 100;
         height = end - start;
     } else {
-        height = dockProperties[dockType] = screen->height_in_pixels * thicknessPercent / 100;
+        height = dockProperties[dockType] = rootDims[1] * thicknessPercent / 100;
         width = end - start;
     }
 
@@ -111,10 +123,10 @@ void updateDockProperties(XDrawable* drawable, DockType dockType, int thicknessP
             break;
         case RIGHT:
             y = 0;
-            x = screen->width_in_pixels -  width;
+            x = rootDims[0] -  width;
             break;
         case BOTTOM:
-            y = screen->height_in_pixels - height;
+            y = rootDims[1] - height;
             x = 0;
             break;
     }
@@ -124,7 +136,6 @@ void updateDockProperties(XDrawable* drawable, DockType dockType, int thicknessP
 
     xcb_ewmh_set_wm_strut(ewmh, drawable->win, dockProperties[0], dockProperties[1], dockProperties[2], dockProperties[3]);
     xcb_configure_window(dis, drawable->win, mask, values);
-
 }
 
 void sendKeyEvent(char press, KeyCode keyCode) {
