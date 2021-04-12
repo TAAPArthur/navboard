@@ -10,7 +10,8 @@ LDFLAGS := -lX11 -lxcb -lxcb-ewmh -lxcb-icccm -lxcb-xtest -lX11-xcb -lXft -lm
 
 all: $(BIN)
 
-install: $(BIN)
+install: $(BIN) libnavboard.a
+	install -m 0755 -Dt "$(DESTDIR)/usr/lib/" libnavboard.a
 	install -m 0755 -Dt "$(DESTDIR)/usr/bin/" $(BIN)
 	install -m 0755 -D $(BIN)-local.sh "$(DESTDIR)/usr/bin/$(BIN)-local"
 	install -m 0755 -Dt "$(DESTDIR)/usr/include/navboard/" *.h
@@ -18,6 +19,9 @@ install: $(BIN)
 uninstall:
 	rm -f "$(DESTDIR)/usr/bin/$(BIN)"
 	rm -f "$(DESTDIR)/usr/bin/$(BIN)-local"
+
+libnavboard.a: $(SRCS:.c=.o) $(BOARDS_OBJ)
+	ar rcs $@ $^
 
 navboard: $(SRCS:.c=.o) $(BOARDS_OBJ)
 	$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS)
