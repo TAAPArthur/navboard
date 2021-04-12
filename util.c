@@ -35,7 +35,7 @@ void quit() {
     exit(0);
 }
 
-struct {
+static struct {
     struct pollfd pollFDs[NUM_FD_LISTENERS];
     void(*extraEventCallBacks[NUM_FD_LISTENERS])();
     int numberOfFDsToPoll;

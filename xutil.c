@@ -15,16 +15,16 @@
 
 #include "xutil.h"
 
-Display* dpy;
-xcb_connection_t* dis;
-xcb_window_t root;
-xcb_ewmh_connection_t* ewmh;
-xcb_screen_t* screen;
-xcb_gcontext_t  gc;
-const xcb_setup_t* xSetup;
-xcb_get_keyboard_mapping_reply_t* keyboard_mapping;
-XftFont* font;
-uint32_t rootDims[2];
+static Display* dpy;
+static xcb_connection_t* dis;
+static xcb_window_t root;
+static xcb_ewmh_connection_t* ewmh;
+static xcb_screen_t* screen;
+static xcb_gcontext_t  gc;
+static const xcb_setup_t* xSetup;
+static xcb_get_keyboard_mapping_reply_t* keyboard_mapping;
+static XftFont* font;
+static uint32_t rootDims[2];
 
 struct xdrawable {
     xcb_window_t win;
