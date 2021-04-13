@@ -2,16 +2,17 @@ DEBUGGING_FLAGS := -std=c99 -g -rdynamic -O0 -Werror -Wno-missing-field-initiali
 RELEASE_FLAGS ?= -std=c99 -O3 -DNDEBUG -Werror -Wno-missing-field-initializers -Wno-sign-compare -Wno-missing-braces
 CFLAGS ?= $(RELEASE_FLAGS)
 SRCS := config.c util.c navboard.c xutil.c
+CFLAGS += -fPIC
 BIN := navboard
 BOARDS ?= $(wildcard boards/*.c)
 BOARDS_OBJ ?= $(BOARDS:.c=.o)
 
 LDFLAGS := -lX11 -lxcb -lxcb-ewmh -lxcb-icccm -lxcb-xtest -lX11-xcb -lXft -lm
 
-all: $(BIN)
+all: $(BIN) libnavboard.so
 
-install: $(BIN) libnavboard.a
-	install -m 0755 -Dt "$(DESTDIR)/usr/lib/" libnavboard.a
+install: $(BIN) libnavboard.so
+	install -m 0755 -Dt "$(DESTDIR)/usr/lib/" libnavboard.so
 	install -m 0755 -Dt "$(DESTDIR)/usr/bin/" $(BIN)
 	install -m 0755 -D $(BIN)-local.sh "$(DESTDIR)/usr/bin/$(BIN)-local"
 	install -m 0755 -Dt "$(DESTDIR)/usr/include/navboard/" *.h
@@ -19,9 +20,10 @@ install: $(BIN) libnavboard.a
 uninstall:
 	rm -f "$(DESTDIR)/usr/bin/$(BIN)"
 	rm -f "$(DESTDIR)/usr/bin/$(BIN)-local"
+	rm -f "$(DESTDIR)/usr/lib/libnavboard.so"
 
-libnavboard.a: $(SRCS:.c=.o) $(BOARDS_OBJ)
-	ar rcs $@ $^
+libnavboard.so: $(SRCS:.c=.o) $(BOARDS_OBJ)
+	${CC} ${CFLAGS} -fPIC -shared -o $@ $^ ${CFLAGS} ${LDFLAGS}
 
 navboard: $(SRCS:.c=.o) $(BOARDS_OBJ)
 	$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS)
