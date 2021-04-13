@@ -3,7 +3,7 @@
 
 #define SHELL "/bin/sh"
 #define MAX_X_EVENTS 32
-#define MAX_BOARDS 8
+#define MAX_BOARDS 256
 #define DEFAULT_DOCK_TYPE BOTTOM
 #define DEFAULT_THICKNESS 40
 #define NUM_FD_LISTENERS 2
