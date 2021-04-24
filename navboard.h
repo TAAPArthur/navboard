@@ -12,6 +12,10 @@
 #define LOCK    (1<<1)
 #define MOD     (1<<2)
 #define LATCH   (1<<3)
+typedef union {
+    const char* s;
+    int i;
+}Arg;
 
 typedef struct {
     KeySym keySym;
@@ -26,6 +30,7 @@ typedef struct {
 
     Color foreground;
     Color background[2];
+    Arg arg;
 
     // should not be manually set
     char pressed;
