@@ -21,6 +21,7 @@ void setWindowProperties(XDrawable* win);
 
 void updateDockProperties(XDrawable* drawable, DockProperties dockProperties);
 
+void drawSlider(XDrawable* win, Color color, float percent, xcb_rectangle_t* rect, xcb_rectangle_t* dest);
 void updateBackground(XDrawable* win, Color color, xcb_rectangle_t* rects);
 int matchesWindow(XDrawable* drawable,xcb_window_t win);
 

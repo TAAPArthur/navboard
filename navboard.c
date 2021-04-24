@@ -18,6 +18,22 @@ Board boards[MAX_BOARDS];
 int numBoards = 0;
 static int activeIndex;
 
+typedef struct {
+    KeyGroup* keyGroup;
+    Key* key;
+    int16_t current[2];
+} KeyState;
+KeyState keyStates[255];
+
+
+int isSlider(Key* key) {
+    return key->min || key->max;
+}
+
+static int16_t getXPos() {
+    return keyStates[0].current[0];
+}
+
 Board* getActiveBoard() {
     return &boards[activeIndex];
 }
@@ -52,7 +68,7 @@ void setDefaults(Key* key) {
 }
 
 char isRowSeperator(Key* key) {
-    return !key->keySym && !key->label;
+    return !key->keySym && !key->label && !isSlider(key);
 
 }
 
@@ -162,6 +178,9 @@ void computeRects(KeyGroup*keyGroup) {
 
 static void redrawCells(KeyGroup* keyGroup) {
     assert(keyGroup);
+
+    char intBuffer[5];
+    xcb_rectangle_t temp;
     for(int i = 0, n = 0; i < keyGroup->numKeys; i++) {
         if(!isRowSeperator(&keyGroup->keys[i])){
             Key*key=&keyGroup->keys[i];
@@ -170,12 +189,21 @@ static void redrawCells(KeyGroup* keyGroup) {
             const char c = getKeyChar((&key->keySym)[keyGroup->level]);
             const char* label = rawLabel ? rawLabel : &c;
             int labelSize = rawLabel ? strlen(rawLabel) : 1;
+            xcb_rectangle_t* rect = keyGroup->rects + n;
+            if(isSlider(key)) {
+                float percent = (key->value - key->min)/ (float)(key->max - key->min);
+                drawSlider(keyGroup->drawable, key->background[1], percent, rect, &temp);
+                rect = &temp;
+                sprintf(intBuffer,"%d", key->value);
+                label = intBuffer;
+                labelSize = strlen(intBuffer);
+            }
             drawText(keyGroup->drawable, labelSize, label,
                     key->foreground,
-                    keyGroup->rects[n].x ,
-                    keyGroup->rects[n].y,
-                    keyGroup->rects[n].width,
-                    keyGroup->rects[n].height
+                    rect->x,
+                    rect->y,
+                    rect->width,
+                    rect->height
                 );
 
             n++;
@@ -206,30 +234,71 @@ void exposeEvent(xcb_expose_event_t* event) {
         redrawCells(getKeyGroupForWindow(event->window));
 }
 
-void triggerCell(KeyGroup*keyGroup, Key*key, char press) {
+
+#define MAX(A, B) (A>B?A:B)
+#define MIN(A, B) (A<B?A:B)
+void dragSlider(KeyGroup*keyGroup, Key* key) {
+    float percent = (getXPos() - keyGroup->rects[key->index].x)/ (float)keyGroup->rects[key->index].width;
+    float delta = MAX(0, MIN(1, percent ));
+    key->value = delta * (key->max - key->min) + key->min;
+}
+
+void triggerCell(KeyGroup*keyGroup, Key*key, TriggerType type) {
     if(!key) {
         return;
     }
-    if(hasLatchFlag(key) && !press)
+    if(hasLatchFlag(key) && type != PRESS )
         return;
-    key->pressed = hasLatchFlag(key) ? !key->pressed: press;
+    if(!isSlider(key)) {
+        if(type == PRESS || type == RELEASE ) {
+            key->pressed = hasLatchFlag(key) ? !key->pressed: type == PRESS;
+        }
+    } else if(type == DRAG) {
+        dragSlider(keyGroup, key);
+    }
     Board * board = getActiveBoard();
-    if(press && key->onPress)
+    if(type == PRESS && key->onPress)
         key->onPress(keyGroup, key);
-    else if(!press && key->onRelease)
+    else if(type == RELEASE && key->onRelease)
         key->onRelease(keyGroup, key);
+    else if(type == DRAG && key->onDrag)
+        key->onDrag(keyGroup, key);
     if(board == getActiveBoard()) {
-        updateBackground(keyGroup->drawable, key->background[key->pressed], &keyGroup->rects[key->index]);
         redrawCells(keyGroup);
     }
 
 }
 
+static TriggerType getType(xcb_button_press_event_t* event) {
+    switch(event->response_type) {
+        case XCB_BUTTON_PRESS:
+            return PRESS;
+        case XCB_BUTTON_RELEASE:
+            return RELEASE;
+        case XCB_MOTION_NOTIFY:
+            return DRAG;
+    }
+    return -1;
+}
+
+void triggerCellAtPosition(int id, TriggerType type, xcb_window_t win, int x, int y) {
+    KeyGroup*keyGroup;
+    Key* key;
+    if(type == PRESS) {
+        keyGroup = getKeyGroupForWindow(win);
+        key = findKey(keyGroup, x, y);
+        keyStates[id] = (KeyState){keyGroup, key, {x, y}};
+    } else {
+        keyGroup = keyStates[id].keyGroup;
+        key = keyStates[id].key;
+        keyStates[id].current[0] = x;
+        keyStates[id].current[1] = y;
+    }
+    triggerCell(keyGroup, key, type);
+}
+
 void buttonEvent(xcb_button_press_event_t* event) {
-    char press = event->response_type == XCB_BUTTON_PRESS;
-    KeyGroup*keyGroup = getKeyGroupForWindow(event->event);
-    Key* key = findKey(keyGroup, event->event_x, event->event_y);
-    triggerCell(keyGroup, key, press);
+    triggerCellAtPosition(0, getType(event), event->event, event->event_x, event->event_y);
 }
 
 void cleanupKeygroup(KeyGroup* keyGroup) {

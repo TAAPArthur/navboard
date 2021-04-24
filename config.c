@@ -8,6 +8,7 @@ void(*xEventHandlers[LASTEvent])() = {
     [0] = logError,
     [XCB_BUTTON_PRESS] = buttonEvent,
     [XCB_BUTTON_RELEASE] = buttonEvent,
+    [XCB_MOTION_NOTIFY] = buttonEvent,
     [XCB_SELECTION_CLEAR] = quit,
     [XCB_EXPOSE] = exposeEvent,
     [XCB_CONFIGURE_NOTIFY] = configureNotify,
