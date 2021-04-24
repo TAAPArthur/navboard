@@ -1,7 +1,7 @@
 DEBUGGING_FLAGS := -std=c99 -g -rdynamic -O0 -Werror -Wno-missing-field-initializers -Wno-sign-compare
 RELEASE_FLAGS ?= -std=c99 -O3 -DNDEBUG -Werror -Wno-missing-field-initializers -Wno-sign-compare -Wno-missing-braces
 CFLAGS ?= $(RELEASE_FLAGS)
-SRCS := config.c util.c navboard.c xutil.c
+SRCS := config.c util.c navboard.c xutil.c functions.c
 CFLAGS += -fPIC
 BIN := navboard
 BOARDS ?= $(wildcard boards/*.c)

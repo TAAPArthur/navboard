@@ -61,13 +61,20 @@ typedef struct Layout {
 extern Board boards[MAX_BOARDS];
 extern int numBoards;
 
-KeyGroup* getKeyGroupForWindow(xcb_window_t win);
+static inline char hasLatchFlag(const Key* key) {
+    return key->flags & LATCH;
+}
 
+static inline char isModifier(const Key* key) {
+    return key->flags & MOD;
+}
+
+int activateBoardByName(const char*name);
+
+KeyGroup* getKeyGroupForWindow(xcb_window_t win);
 
 void computeRects(KeyGroup*keyGroup);
 void initBoard(Board* board);
-
-
 
 Board* getActiveBoard();
 void cleanupBoard(Board*board);
@@ -79,13 +86,6 @@ char isRowSeperator(Key* key);
 
 Key* findKey(KeyGroup* keyGroup, int x, int y);
 
-void sendKeyPress(Key*key);
-
-void sendKeyPressWithModifiers(KeyGroup*keyGroup, Key*key);
-void sendKeyReleaseWithModifiers(KeyGroup*keyGroup, Key*key);
-void sendKeyRelease(Key*key);
-
-
 void setupWindowsForBoard(Board*board);
 void triggerCell(KeyGroup*keyGroup, Key*key, char press);
 
@@ -94,7 +94,6 @@ extern Key defaults[];
 void buttonEvent(xcb_button_press_event_t* event);
 void configureNotify(xcb_configure_notify_event_t* event);
 void exposeEvent(xcb_expose_event_t* event);
-void shiftKeys(KeyGroup*keyGroup, Key*key);
 
 #define __CAT(x, y) x ## y
 #define _CAT(x, y) __CAT(x, y)

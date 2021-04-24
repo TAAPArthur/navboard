@@ -1,4 +1,5 @@
 #include "config.h"
+#include "functions.h"
 #include "navboard.h"
 #include "util.h"
 #include "xutil.h"

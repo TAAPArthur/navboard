@@ -184,11 +184,6 @@ static void redrawCells(KeyGroup* keyGroup) {
     outlineRect(keyGroup->drawable, keyGroup->outlineColor, keyGroup->numRects, keyGroup->rects);
 }
 
-void shiftKeys(KeyGroup*keyGroup, Key*key) {
-    keyGroup->level = key->pressed;
-    redrawCells(keyGroup);
-}
-
 void configureNotify(xcb_configure_notify_event_t* event) {
     KeyGroup* keyGroup = getKeyGroupForWindow(event->window);
     if(keyGroup) {
@@ -211,14 +206,6 @@ void exposeEvent(xcb_expose_event_t* event) {
         redrawCells(getKeyGroupForWindow(event->window));
 }
 
-char hasLatchFlag(Key* key) {
-    return key->flags & LATCH;
-}
-
-char isModifier(Key* key) {
-    return key->flags & MOD;
-}
-
 void triggerCell(KeyGroup*keyGroup, Key*key, char press) {
     if(!key) {
         return;
@@ -238,42 +225,12 @@ void triggerCell(KeyGroup*keyGroup, Key*key, char press) {
 
 }
 
-void pressAllModifiers(KeyGroup*keyGroup, int press) {
-    for(int i = 0; i < keyGroup->numKeys; i++) {
-        if(keyGroup->keys[i].pressed && isModifier(&keyGroup->keys[i])) {
-            sendKeyEvent(press, keyGroup->keys[i].keyCode);
-            if(!press && (keyGroup->keys[i].flags & LATCH)&& !(keyGroup->keys[i].flags & LOCK)) {
-                keyGroup->keys[i].pressed = 0;
-            }
-        }
-    }
-}
-
-void sendKeyPress(Key*key){
-    sendKeyEvent(1, key->keyCode);
-}
-
-void sendKeyRelease(Key*key){
-    sendKeyEvent(0, key->keyCode);
-}
-
-void sendKeyReleaseWithModifiers(KeyGroup*keyGroup, Key*key){
-    sendKeyRelease(key);
-    pressAllModifiers(keyGroup, 0);
-}
-
-void sendKeyPressWithModifiers(KeyGroup*keyGroup, Key*key){
-    pressAllModifiers(keyGroup, 1);
-    sendKeyPress(key);
-}
-
 void buttonEvent(xcb_button_press_event_t* event) {
     char press = event->response_type == XCB_BUTTON_PRESS;
     KeyGroup*keyGroup = getKeyGroupForWindow(event->event);
     Key* key = findKey(keyGroup, event->event_x, event->event_y);
     triggerCell(keyGroup, key, press);
 }
-
 
 void cleanupKeygroup(KeyGroup* keyGroup) {
     if(keyGroup->drawable)
@@ -297,7 +254,7 @@ void setupWindowsForBoard(Board*board) {
     }
 }
 
-int activeBoardByName(const char*name) {
+int activateBoardByName(const char*name) {
     Board*board = getActiveBoard();
     if(setActiveBoard(name)) {
         if(board != getActiveBoard()) {
@@ -308,9 +265,8 @@ int activeBoardByName(const char*name) {
     }
     return 0;
 }
-void activateBoard(KeyGroup*keyGroup, Key*key) {
-    activeBoardByName(key->label);
-}
+
+void activateBoard(KeyGroup*keyGroup, Key*key);
 
 void createBoardOrBoards() {
     int numColumns = 3;
