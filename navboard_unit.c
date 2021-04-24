@@ -4,11 +4,12 @@
 #include <scutest/tester.h>
 #include <signal.h>
 #include <unistd.h>
+#include <stdio.h>
 
 
 #include "navboard.h"
 #include "xutil.h"
-#include <stdio.h>
+#include "functions.h"
 
 SCUTEST(init_connection) {
     initConnection();
@@ -28,11 +29,9 @@ SCUTEST(init_boards) {
                 Key*key = boards[i].keyGroup[j].keys + n;
                 if(isRowSeperator(key))
                     continue;
-                assert(key->label || key->keySym);
                 if(key->keySym)
                     assert(key->keyCode);
                 assert(key->weight);
-                assert(key->onPress || key->onRelease || key->flags & MOD);
             }
         }
     }
@@ -103,12 +102,12 @@ SCUTEST(test_latch) {
     setupWindowsForBoard(&board);
     assert(!keys[0].pressed);
 
-    triggerCell(board.keyGroup, keys, 1);
+    triggerCell(board.keyGroup, keys, PRESS);
     assert(keys[0].pressed);
-    triggerCell(board.keyGroup, keys, 0);
+    triggerCell(board.keyGroup, keys, RELEASE);
     assert(keys[0].pressed);
-    triggerCell(board.keyGroup, keys, 1);
-    triggerCell(board.keyGroup, keys, 0);
+    triggerCell(board.keyGroup, keys, PRESS);
+    triggerCell(board.keyGroup, keys, RELEASE);
     assert(!keys[0].pressed);
 
     cleanupBoard(&board);

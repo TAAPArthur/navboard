@@ -12,6 +12,10 @@
 #define LOCK    (1<<1)
 #define MOD     (1<<2)
 #define LATCH   (1<<3)
+typedef enum {
+    RELEASE, PRESS, DRAG
+} TriggerType;
+
 typedef union {
     const char* s;
     int i;
@@ -22,11 +26,18 @@ typedef struct {
     KeySym keySymShift;
     const char* label;
     const char* altLabel;
-    unsigned int weight;
+
+    int16_t weight;
+
+    int16_t min;
+    int16_t max;
+    int16_t value;
+
     char flags;
 
     void(*onPress)();
     void(*onRelease)();
+    void(*onDrag)();
 
     Color foreground;
     Color background[2];
@@ -87,7 +98,7 @@ char isRowSeperator(Key* key);
 Key* findKey(KeyGroup* keyGroup, int x, int y);
 
 void setupWindowsForBoard(Board*board);
-void triggerCell(KeyGroup*keyGroup, Key*key, char press);
+void triggerCell(KeyGroup*keyGroup, Key*key, TriggerType type) ;
 
 extern Key defaults[];
 

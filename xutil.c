@@ -27,6 +27,9 @@ static xcb_get_keyboard_mapping_reply_t* keyboard_mapping;
 static XftFont* font;
 static uint32_t rootDims[2];
 
+static int avgNumberLengthWithCurrentFont;
+
+
 struct xdrawable {
     xcb_window_t win;
     XftDraw *draw;
@@ -76,8 +79,13 @@ void setFont(const char* fontName) {
         XftFontClose(dpy, font);
         font = NULL;
     }
-    if(fontName)
+    if(fontName) {
         font = XftFontOpenName(dpy, DefaultScreen(dpy), fontName);
+        avgNumberLengthWithCurrentFont;
+        XGlyphInfo info;
+        XftTextExtentsUtf8(dpy, font, "0123456789", 10, &info);
+        avgNumberLengthWithCurrentFont = info.width / 10;
+    }
 }
 
 void destroyWindow(XDrawable* drawable){
@@ -209,6 +217,12 @@ void outlineRect(XDrawable* drawable, Color color, int numRects, const xcb_recta
     xcb_poly_rectangle(dis, drawable->win, gc, numRects, rects);
 }
 
+void drawSlider(XDrawable* drawable, Color color, float percent, xcb_rectangle_t* rect, xcb_rectangle_t* rectUsed) {
+    int width = avgNumberLengthWithCurrentFont * 3;
+    *rectUsed = (xcb_rectangle_t){rect->x + percent * (rect->width - width) , rect->y, width, rect->height};
+    xcb_change_gc(dis, gc, XCB_GC_FOREGROUND, (uint32_t[]){color});
+    xcb_poly_fill_rectangle(dis, drawable->win, gc, 1, rectUsed);
+}
 void updateBackground(XDrawable* drawable, Color color, xcb_rectangle_t* rects) {
     xcb_change_gc(dis, gc, XCB_GC_FOREGROUND, (uint32_t[]){color});
     xcb_poly_fill_rectangle(dis, drawable->win, gc, 1, rects);
