@@ -18,8 +18,9 @@
 static Display* dpy;
 static xcb_connection_t* dis;
 static xcb_window_t root;
-static xcb_ewmh_connection_t* ewmh;
 static xcb_screen_t* screen;
+static xcb_ewmh_connection_t _ewmh;
+static xcb_ewmh_connection_t* ewmh = &_ewmh;
 static xcb_gcontext_t  gc;
 static const xcb_setup_t* xSetup;
 static xcb_get_keyboard_mapping_reply_t* keyboard_mapping;
@@ -40,7 +41,6 @@ void initConnection() {
     dis = XGetXCBConnection(dpy);
     XSetEventQueueOwner(dpy, XCBOwnsEventQueue);
     //dis = xcb_connect(NULL, NULL);
-    ewmh = (xcb_ewmh_connection_t*)malloc(sizeof(xcb_ewmh_connection_t));
     xcb_intern_atom_cookie_t* cookie = xcb_ewmh_init_atoms(dis, ewmh);
     xcb_ewmh_init_atoms_replies(ewmh, cookie, NULL);
     screen = ewmh->screens[0];
@@ -65,6 +65,10 @@ void setRootDims(uint16_t width, uint16_t height){
 }
 
 void closeConnection() {
+    setFont(NULL);
+    free(keyboard_mapping);
+    xcb_ewmh_connection_wipe(ewmh);
+    XCloseDisplay(dpy);
 }
 
 void setFont(const char* fontName) {
@@ -72,12 +76,14 @@ void setFont(const char* fontName) {
         XftFontClose(dpy, font);
         font = NULL;
     }
-	font = XftFontOpenName(dpy, DefaultScreen(dpy), fontName);
+    if(fontName)
+        font = XftFontOpenName(dpy, DefaultScreen(dpy), fontName);
 }
 
 void destroyWindow(XDrawable* drawable){
 	XftDrawDestroy(drawable->draw);
     xcb_destroy_window(dis, drawable->win);
+    free(drawable);
 }
 
 XDrawable* createWindow(uint32_t windowMasks){

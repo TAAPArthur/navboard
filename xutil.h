@@ -3,6 +3,7 @@
 #include "common.h"
 
 void initConnection(void);
+void closeConnection();
 
 void sendKeyEvent(char press, KeyCode keyCode);
 XDrawable* createWindow(uint32_t windowMasks);

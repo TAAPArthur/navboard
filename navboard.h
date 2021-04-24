@@ -62,6 +62,12 @@ KeyGroup* getKeyGroupForWindow(xcb_window_t win);
 void computeRects(KeyGroup*keyGroup);
 void initBoard(Board* board);
 
+
+
+Board* getActiveBoard();
+void cleanupBoard(Board*board);
+void cleanupKeygroup(KeyGroup* keyGroup);
+
 void initKeyGroup(KeyGroup* keyGroup);
 
 char isRowSeperator(Key* key);

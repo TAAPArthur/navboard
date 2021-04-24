@@ -275,10 +275,15 @@ void buttonEvent(xcb_button_press_event_t* event) {
 }
 
 
-void destroyWindowsForBoard(Board*board) {
-    for(int i = 0; i < board->groupSize; i++) {
-        KeyGroup* keyGroup=&board->keyGroup[i];
+void cleanupKeygroup(KeyGroup* keyGroup) {
+    if(keyGroup->drawable)
         destroyWindow(keyGroup->drawable);
+    if(keyGroup->rects)
+        free(keyGroup->rects);
+}
+void cleanupBoard(Board*board) {
+    for(int i = 0; i < board->groupSize; i++) {
+        cleanupKeygroup(board->keyGroup + i);
     }
 }
 void setupWindowsForBoard(Board*board) {
@@ -296,7 +301,7 @@ int activeBoardByName(const char*name) {
     Board*board = getActiveBoard();
     if(setActiveBoard(name)) {
         if(board != getActiveBoard()) {
-            destroyWindowsForBoard(board);
+            cleanupBoard(board);
             setupWindowsForBoard(getActiveBoard());
         }
         return 1;

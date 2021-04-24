@@ -14,7 +14,6 @@ SCUTEST(init_connection) {
     initConnection();
 }
 
-
 void init();
 SCUTEST(init_boards) {
     assert(numBoards);
@@ -68,6 +67,7 @@ SCUTEST(compute_rect, .iter=3) {
     }
     assert(keyGroup.windowWidth == width);
     assert(keyGroup.windowHeight == height + rowHeight);
+    cleanupKeygroup(&keyGroup);
 }
 
 SCUTEST(find_keys) {
@@ -89,11 +89,12 @@ SCUTEST(find_keys) {
     assert(&keys[5] == findKey(&keyGroup, 33, 50));
     assert(&keys[6] == findKey(&keyGroup, 66, 50));
     assert(&keys[6] == findKey(&keyGroup, 90, 90));
+    cleanupKeygroup(&keyGroup);
 }
 
-SCUTEST(test_latch) {
+SCUTEST_SET_ENV(init, closeConnection);
 
-    init();
+SCUTEST(test_latch) {
     Key keys[] = { {.label="A", .flags=LATCH} };
 
     Board board = CREATE_BOARD("name", keys, LEN(keys));
@@ -109,4 +110,6 @@ SCUTEST(test_latch) {
     triggerCell(board.keyGroup, keys, 1);
     triggerCell(board.keyGroup, keys, 0);
     assert(!keys[0].pressed);
+
+    cleanupBoard(&board);
 }
