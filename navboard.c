@@ -246,8 +246,8 @@ void exposeEvent(xcb_expose_event_t* event) {
 #define MAX(A, B) (A>B?A:B)
 #define MIN(A, B) (A<B?A:B)
 void dragSlider(KeyGroup*keyGroup, Key* key) {
-    float percent = (getXPos() - (float)keyGroup->rects[key->index].x)/ keyGroup->rects[key->index].width;
-    float delta = MAX(0, MIN(100, percent ));
+    float percent = (getXPos() - keyGroup->rects[key->index].x)/ (float)keyGroup->rects[key->index].width;
+    float delta = MAX(0, MIN(1, percent ));
     key->value = delta * (key->max - key->min) + key->min;
 }
 

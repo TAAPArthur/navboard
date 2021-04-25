@@ -103,6 +103,7 @@ Key* findKey(KeyGroup* keyGroup, int x, int y);
 
 void setupWindowsForBoard(Board*board);
 void triggerCell(KeyGroup*keyGroup, Key*key, TriggerType type) ;
+void triggerCellAtPosition(int id, TriggerType type, xcb_window_t win, int x, int y) ;
 
 extern Key defaults[];
 
