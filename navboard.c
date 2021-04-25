@@ -301,6 +301,13 @@ void triggerCellAtPosition(int id, TriggerType type, xcb_window_t win, int x, in
         key = keyStates[id].key;
         keyStates[id].current[0] = x;
         keyStates[id].current[1] = y;
+
+        if(!key)
+            return;
+        if(type == RELEASE) {
+            keyStates[id].keyGroup = NULL;
+            keyStates[id].key = NULL;
+        }
     }
     triggerCell(keyGroup, key, type);
 }
