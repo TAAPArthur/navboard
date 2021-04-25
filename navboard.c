@@ -74,7 +74,7 @@ char isRowSeperator(Key* key) {
 
 int getNumRows(KeyGroup* keyGroup) {
     int rows = 1;
-    for(int i = 0; i < keyGroup->numKeys; i++) {
+    for(int i = 0; i < keyGroup->numKeys - 1; i++) {
         rows+=isRowSeperator(&keyGroup->keys[i]);
     }
     return rows;
