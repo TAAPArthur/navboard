@@ -91,6 +91,21 @@ SCUTEST(find_keys) {
     cleanupKeygroup(&keyGroup);
 }
 
+
+
+SCUTEST(test_load_value) {
+    Key keys[] = {
+        {.min=0, .max=100, .loadValue = readValueFromCmd, .arg.s="echo 10"},
+        {.min=0, .max=100, .loadValue = readValueFromCmd, .arg.s="echo 20" },
+    };
+
+    Board board = CREATE_BOARD("name", keys, LEN(keys));
+    initBoard(&board);
+    assert(keys[0].value == 10);
+    assert(keys[1].value == 20);
+    cleanupBoard(&board);
+}
+
 SCUTEST_SET_ENV(init, closeConnection);
 
 SCUTEST(test_latch) {
