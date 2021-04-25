@@ -80,12 +80,19 @@ int getNumRows(KeyGroup* keyGroup) {
     return rows;
 }
 
-int initKeys(Key* keys, int n) {
+static int initKeys(KeyGroup* keyGroup) {
+    Key* keys = keyGroup->keys;
+    int n = keyGroup->numKeys;
     int i, j;
+
     for(i = 0, j = 0; i < n; i++) {
         if(isRowSeperator(&keys[i]))
             continue;
         setDefaults(&keys[i]);
+
+        if(keys[i].loadValue) {
+            keys[i].loadValue(keyGroup, keys + i);
+        }
         xcb_keysym_t* sym = NULL;
         keys[i].index = j++;
         if(keys[i].keySym) {
@@ -106,8 +113,9 @@ int initKeys(Key* keys, int n) {
 }
 
 void initKeyGroup(KeyGroup* keyGroup) {
+    assert(keyGroup);
     keyGroup->numRows = getNumRows(keyGroup);
-    initKeys(keyGroup->keys, keyGroup->numKeys);
+    initKeys(keyGroup);
 }
 void initBoard(Board* board) {
     for(int n = 0; n < board->groupSize; n++) {

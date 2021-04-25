@@ -39,6 +39,8 @@ typedef struct {
     void(*onRelease)();
     void(*onDrag)();
 
+    void(*loadValue)();
+
     Color foreground;
     Color background[2];
     Arg arg;
