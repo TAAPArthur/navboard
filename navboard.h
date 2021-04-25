@@ -8,10 +8,12 @@
 #include "config.h"
 
 
-#define SHIFT   (1<<0)
-#define LOCK    (1<<1)
-#define MOD     (1<<2)
-#define LATCH   (1<<3)
+#define SHIFT          (1<<0)
+#define LOCK           (1<<1)
+#define MOD            (1<<2)
+#define LATCH          (1<<3)
+#define KEY_DISABLED   (1<<4)
+
 typedef enum {
     RELEASE, PRESS, DRAG
 } TriggerType;

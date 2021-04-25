@@ -244,7 +244,7 @@ void dragSlider(KeyGroup*keyGroup, Key* key) {
 }
 
 void triggerCell(KeyGroup*keyGroup, Key*key, TriggerType type) {
-    if(!key) {
+    if(!key || key->flags & KEY_DISABLED) {
         return;
     }
     if(hasLatchFlag(key) && type != PRESS )
