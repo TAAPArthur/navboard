@@ -127,3 +127,26 @@ SCUTEST(test_latch) {
 
     cleanupBoard(&board);
 }
+SCUTEST(test_slider_release_motion_press) {
+    Key keys[] = {
+        {.max=100}, {.max=100}
+    };
+    boards[0] = CREATE_BOARD("name", keys, LEN(keys));
+    Board* board =  boards;
+    initBoard(board);
+    board->keyGroup[0].windowWidth = 1000;
+    board->keyGroup[0].windowHeight = 1000;
+    computeRects(board->keyGroup);
+    setupWindowsForBoard(board);
+
+
+    triggerCellAtPosition(0, PRESS, 0, 0, 0);
+    triggerCellAtPosition(0, RELEASE, 0, 0, 0);
+    triggerCellAtPosition(0, DRAG, 0, board->keyGroup[0].windowWidth, 0);
+    assert(keys[0].value == 0);
+    triggerCellAtPosition(0, PRESS, 0, 0, 0);
+    triggerCellAtPosition(0, DRAG, 0, board->keyGroup[0].windowWidth, 0);
+    assert(keys[0].value == 100);
+
+    cleanupBoard(board);
+}
