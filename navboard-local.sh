@@ -8,7 +8,7 @@ if [ "$1" = "-r" ] || [ "$1" = "--recompile" ]; then
     for f in *.sh; do
         [ -x "$f" ] && "./$f" "$NAVBOARD_CONFIG_HOME"
     done
-    ${CC:-cc} -o "$NAVBOARD_LOCAL" -lnavboard -lX11 -lxcb -lxcb-ewmh -lxcb-icccm -lxcb-xtest -lX11-xcb -lXft -lm -- *.c
+    ${CC:-cc} -o "$NAVBOARD_LOCAL" ./*.c -lnavboard -lX11 -lxcb -lxcb-ewmh -lxcb-icccm -lxcb-xtest -lX11-xcb -lXft -lm
 else
     exec "$NAVBOARD_LOCAL" "$@"
 fi
