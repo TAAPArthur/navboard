@@ -14,7 +14,7 @@ int waitForChild(int pid) {
     return exitCode;
 }
 
-int spawnArgs(const char* const args[], int* fds) {
+int _spawnArgs(const char* const args[], int* fds) {
     int pid = fork();
     if(pid == 0) {
         if(fds) {
@@ -34,18 +34,22 @@ int spawnArgs(const char* const args[], int* fds) {
         close(fds[1]);
     return pid;
 }
+
+int spawnArgs(const char* const args[]) {
+    return waitForChild(spawnArgs(args));
+}
+
 int spawn(const char* command) {
     const char* const args[] = {SHELL, "-c", command, NULL};
-    return waitForChild(spawnArgs(args, NULL));
+    return spawnArgs(args);
 }
 
 int readCmd(const char* command, char*buffer, int bufferLen) {
     int fds[2];
     pipe(fds);
     const char* const args[] = {SHELL, "-c", command, NULL};
-    int pid = spawnArgs(args, fds);
+    int pid = _spawnArgs(args, fds);
     read(fds[0], buffer, bufferLen);
-    printf("%s %s\n", command, buffer);
     return waitForChild(pid);
 }
 
