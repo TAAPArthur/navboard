@@ -143,8 +143,8 @@ Key* findKey(KeyGroup* keyGroup, int x, int y) {
     assert(keyGroup->rects);
     for(int i = 0, n = 0; i < keyGroup->numKeys; i++) {
         if(!isRowSeperator(&keyGroup->keys[i])) {
-            if(x >= keyGroup->rects[n].x && x <= keyGroup->rects[n].x + keyGroup->rects[n].width &&
-                y >= keyGroup->rects[n].y && y <= keyGroup->rects[n].y + keyGroup->rects[n].height) {
+            if(keyGroup->rects[n].x <= x && x <= keyGroup->rects[n].x + keyGroup->rects[n].width &&
+                keyGroup->rects[n].y <= y && y <= keyGroup->rects[n].y + keyGroup->rects[n].height) {
                 return &keyGroup->keys[i];
             }
             n++;
