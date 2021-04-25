@@ -140,12 +140,14 @@ SCUTEST(test_slider_release_motion_press) {
     setupWindowsForBoard(board);
 
 
-    triggerCellAtPosition(0, PRESS, 0, 0, 0);
-    triggerCellAtPosition(0, RELEASE, 0, 0, 0);
-    triggerCellAtPosition(0, DRAG, 0, board->keyGroup[0].windowWidth, 0);
+    int win = *(xcb_window_t*)board->keyGroup[0].drawable;
+
+    triggerCellAtPosition(0, PRESS, win, 0, 0);
+    triggerCellAtPosition(0, RELEASE, win, 0, 0);
+    triggerCellAtPosition(0, DRAG, win, board->keyGroup[0].windowWidth, 0);
     assert(keys[0].value == 0);
-    triggerCellAtPosition(0, PRESS, 0, 0, 0);
-    triggerCellAtPosition(0, DRAG, 0, board->keyGroup[0].windowWidth, 0);
+    triggerCellAtPosition(0, PRESS, win, 0, 0);
+    triggerCellAtPosition(0, DRAG, win, board->keyGroup[0].windowWidth, 0);
     assert(keys[0].value == 100);
 
     cleanupBoard(board);
