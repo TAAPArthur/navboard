@@ -348,7 +348,7 @@ void activateBoard(KeyGroup*keyGroup, Key*key);
 void createBoardOrBoards() {
     int numColumns = 3;
     int numRows = numBoards / numColumns;
-    int numKeys = numBoards + numRows;
+    int numKeys = numBoards + numRows - 1;
     Key* keys = calloc(numKeys, sizeof(Key));
     for(int i = 0, n = 0; i < numKeys; i++) {
         for(int c = 0; c < numColumns && i < numKeys; c++, i++) {
