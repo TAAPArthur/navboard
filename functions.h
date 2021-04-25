@@ -15,4 +15,12 @@ void sendKeyReleaseWithModifiers(KeyGroup*keyGroup, Key*key);
  * Calls sendKeyPressWithModifiers and sendKeyReleaseWithModifiers
  */
 void typeKey(KeyGroup*keyGroup, Key*key);
+
+
+void setKeyEnv(const Key* key);
+void spawnCmd(KeyGroup*keyGroup, Key*key);
+void readValueFromCmd(KeyGroup*keyGroup, Key*key);
+
+void setPressedFromCmd(KeyGroup*keyGroup, Key*key);
+
 #endif
