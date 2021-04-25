@@ -52,7 +52,7 @@ void setDefaults(Key* key) {
     SET_DEFAULT(key->weight, 1);
     SET_DEFAULT(key->foreground, DEFAULT_TEXT_COLOR);
     SET_DEFAULT(key->background[0], DEFAULT_CELL_COLOR);
-    SET_DEFAULT(key->background[1], DEFAULT_CELL_COLOR_PRESSED);
+    SET_DEFAULT(key->background[1], key->flags & KEY_DISABLED ? DEFAULT_CELL_COLOR_DISABLED : DEFAULT_CELL_COLOR_PRESSED);
     for(int i = 0; defaults[i].keySym; i++) {
         if((key->keySym == defaults[i].keySym) || (key->keySym && defaults[i].keySym == -1)) {
             if(!key->label)
@@ -90,7 +90,7 @@ static int initKeys(KeyGroup* keyGroup) {
             continue;
         setDefaults(&keys[i]);
 
-        if(keys[i].loadValue) {
+        if(keys[i].loadValue && !(keys[i].flags & KEY_DISABLED)) {
             keys[i].loadValue(keyGroup, keys + i);
         }
         xcb_keysym_t* sym = NULL;
