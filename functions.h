@@ -23,4 +23,6 @@ void readValueFromCmd(KeyGroup*keyGroup, Key*key);
 
 void setPressedFromCmd(KeyGroup*keyGroup, Key*key);
 
+void activateBoard(KeyGroup*keyGroup, Key*key);
+
 #endif
