@@ -152,3 +152,16 @@ SCUTEST(test_slider_release_motion_press) {
 
     cleanupBoard(board);
 }
+
+SCUTEST(test_activate_boards_click_and_cycle) {
+
+    for(int i=0;i<numBoards * 2; i++) {
+        activateBoardByName(boards[i%numBoards].name);
+        assert(getActiveBoard()->keyGroup[0].drawable);
+        int win = *(xcb_window_t*)getActiveBoard()->keyGroup[0].drawable;
+
+        computeRects(getActiveBoard()->keyGroup);
+        triggerCellAtPosition(0, PRESS, win, 0, 0);
+        triggerCellAtPosition(0, RELEASE, win, 0, 0);
+    }
+}

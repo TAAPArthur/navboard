@@ -264,16 +264,12 @@ void triggerCell(KeyGroup*keyGroup, Key*key, TriggerType type) {
     } else if(type == DRAG) {
         dragSlider(keyGroup, key);
     }
-    Board * board = getActiveBoard();
     if(type == PRESS && key->onPress)
         key->onPress(keyGroup, key);
     else if(type == RELEASE && key->onRelease)
         key->onRelease(keyGroup, key);
     else if(type == DRAG && key->onDrag)
         key->onDrag(keyGroup, key);
-    if(board == getActiveBoard()) {
-        redrawCells(keyGroup);
-    }
 
 }
 
@@ -292,6 +288,7 @@ static TriggerType getType(xcb_button_press_event_t* event) {
 void triggerCellAtPosition(int id, TriggerType type, xcb_window_t win, int x, int y) {
     KeyGroup*keyGroup;
     Key* key;
+    Board * board = getActiveBoard();
     if(type == PRESS) {
         keyGroup = getKeyGroupForWindow(win);
         key = findKey(keyGroup, x, y);
@@ -310,6 +307,12 @@ void triggerCellAtPosition(int id, TriggerType type, xcb_window_t win, int x, in
         }
     }
     triggerCell(keyGroup, key, type);
+    if(board == getActiveBoard()) {
+        redrawCells(keyGroup);
+    } else {
+        keyStates[id].keyGroup = NULL;
+        keyStates[id].key = NULL;
+    }
 }
 
 void buttonEvent(xcb_button_press_event_t* event) {
@@ -341,10 +344,8 @@ void setupWindowsForBoard(Board*board) {
 int activateBoardByName(const char*name) {
     Board*board = getActiveBoard();
     if(setActiveBoard(name)) {
-        if(board != getActiveBoard()) {
-            cleanupBoard(board);
-            setupWindowsForBoard(getActiveBoard());
-        }
+        cleanupBoard(board);
+        setupWindowsForBoard(getActiveBoard());
         return 1;
     }
     return 0;
