@@ -11,7 +11,7 @@ BIN := navboard
 BOARDS ?= $(wildcard boards/*.c)
 BOARDS_OBJ ?= $(BOARDS:.c=.o)
 
-LDFLAGS := -lX11 -lxcb -lxcb-ewmh -lxcb-icccm -lxcb-xtest -lX11-xcb -lXft -lm
+LDFLAGS := -lX11 -lxcb -lxcb-ewmh -lxcb-icccm -lxcb-xtest -ldtext
 
 all: $(BIN) libnavboard.so
 

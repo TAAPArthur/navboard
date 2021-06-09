@@ -1,8 +1,6 @@
-
-#include <X11/keysymdef.h>
-#include <X11/X.h>
-#include <X11/Xlib.h>
+#include <X11/keysym.h>
 #include <assert.h>
+#include <dtext/dtext.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -10,12 +8,9 @@
 #include <xcb/xcb_ewmh.h>
 #include <xcb/xcb_icccm.h>
 #include <xcb/xtest.h>
-#include <X11/Xft/Xft.h>
-#include <X11/Xlib-xcb.h>
 
 #include "xutil.h"
 
-static Display* dpy;
 static xcb_connection_t* dis;
 static xcb_window_t root;
 static xcb_screen_t* screen;
@@ -24,26 +19,22 @@ static xcb_ewmh_connection_t* ewmh = &_ewmh;
 static xcb_gcontext_t  gc;
 static const xcb_setup_t* xSetup;
 static xcb_get_keyboard_mapping_reply_t* keyboard_mapping;
-static XftFont* font;
 static uint32_t rootDims[2];
+dt_font *font;
+
 
 static int avgNumberLengthWithCurrentFont;
 
 
 struct xdrawable {
     xcb_window_t win;
-    XftDraw *draw;
+    dt_context *ctx;
 };
 
 void initConnection() {
-
-    dpy = XOpenDisplay(NULL);
-    if(!dpy) {
+    dis = xcb_connect(NULL, NULL);
+    if(!dis)
         exit(1);
-    }
-    dis = XGetXCBConnection(dpy);
-    XSetEventQueueOwner(dpy, XCBOwnsEventQueue);
-    //dis = xcb_connect(NULL, NULL);
     xcb_intern_atom_cookie_t* cookie = xcb_ewmh_init_atoms(dis, ewmh);
     xcb_ewmh_init_atoms_replies(ewmh, cookie, NULL);
     screen = ewmh->screens[0];
@@ -71,25 +62,23 @@ void closeConnection() {
     setFont(NULL);
     free(keyboard_mapping);
     xcb_ewmh_connection_wipe(ewmh);
-    XCloseDisplay(dpy);
+    xcb_disconnect(dis);
 }
 
 void setFont(const char* fontName) {
     if(font) {
-        XftFontClose(dpy, font);
+        dt_free_font(dis, font);
         font = NULL;
     }
+
     if(fontName) {
-        font = XftFontOpenName(dpy, DefaultScreen(dpy), fontName);
-        avgNumberLengthWithCurrentFont;
-        XGlyphInfo info;
-        XftTextExtentsUtf8(dpy, font, "0123456789", 10, &info);
-        avgNumberLengthWithCurrentFont = info.width / 10;
+        dt_load_font(dis, &font, fontName);
+        avgNumberLengthWithCurrentFont = dt_get_text_width(dis, font, "0123456789", 10) / 10;
     }
 }
 
 void destroyWindow(XDrawable* drawable){
-	XftDrawDestroy(drawable->draw);
+    dt_free_context(drawable->ctx);
     xcb_destroy_window(dis, drawable->win);
     free(drawable);
 }
@@ -103,18 +92,15 @@ XDrawable* createWindow(uint32_t windowMasks){
 
     XDrawable* drawable = malloc(sizeof(XDrawable));
 
-    *drawable = (XDrawable) {
-        win,
-        XftDrawCreate(dpy, win, DefaultVisual(dpy, DefaultScreen(dpy)),
-        DefaultColormap(dpy, DefaultScreen(dpy)))
-    };
+
+    dt_init_context(&drawable->ctx, dis, win);
+    drawable->win = win;
     return drawable;
 }
 
 void mapWindow(XDrawable* drawable){
     xcb_map_window(dis, drawable->win);
 }
-
 
 void updateDockProperties(XDrawable* drawable, DockProperties dockProperties){
     DockType dockType = dockProperties.type;
@@ -153,12 +139,10 @@ void updateDockProperties(XDrawable* drawable, DockProperties dockProperties){
     xcb_configure_window(dis, drawable->win, mask, values);
 }
 
-void sendKeyEvent(char press, KeyCode keyCode) {
+void sendKeyEvent(char press, xcb_keycode_t keyCode) {
     assert(keyCode);
     xcb_test_fake_input(dis, press ? XCB_KEY_PRESS : XCB_KEY_RELEASE, keyCode, XCB_CURRENT_TIME, root, 0, 0, 0);
 }
-
-
 
 char getKeyChar(xcb_keysym_t sym) {
     if(XK_space <= sym && sym <= XK_asciitilde) {
@@ -175,13 +159,13 @@ int dumpKeyCodes() {
     for(int keycode_idx = 0; keycode_idx < nkeycodes; ++keycode_idx) {
         for(int keysym_idx = 0; keysym_idx < keyboard_mapping->keysyms_per_keycode; ++keysym_idx) {
             xcb_keysym_t  sym = keysyms[keysym_idx + keycode_idx * keyboard_mapping->keysyms_per_keycode];
-            printf("KeyCode: %d Sym: %d String: %s %d\n", xSetup->min_keycode + keycode_idx, sym, XKeysymToString(sym), sym == XK_Shift_R);
+            printf("KeyCode: %d Sym: %d %d\n", xSetup->min_keycode + keycode_idx, sym, sym == XK_Shift_R);
         }
     }
     return 0;
 }
 
-int getKeyCode(KeySym targetSym, xcb_keysym_t** foundSym) {
+int getKeyCode(xcb_keysym_t targetSym, xcb_keysym_t** foundSym) {
     int          nkeycodes = keyboard_mapping->length / keyboard_mapping->keysyms_per_keycode;
     xcb_keysym_t* keysyms  = (xcb_keysym_t*)(keyboard_mapping +
             1);  // `xcb_keycode_t` is just a `typedef u8`, and `xcb_keysym_t` is just a `typedef u32`
@@ -194,7 +178,7 @@ int getKeyCode(KeySym targetSym, xcb_keysym_t** foundSym) {
             }
         }
     }
-    printf("Could not find %ld %s\n",targetSym, XKeysymToString(targetSym));
+    printf("Could not find %ld\n",targetSym);
     assert(0);
     return 0;
 }
@@ -204,12 +188,8 @@ int matchesWindow(XDrawable* drawable, xcb_window_t win){
 }
 
 void drawText(XDrawable* drawable, int numChars, const char*str, Color foreground,  int x, int y, int width, int height) {
-	XftColor color;
-    XRenderColor r = {((char*)&foreground)[2] << 2, ((char*)&foreground)[1]<< 2, ((char*)&foreground)[0]<< 2, -1};
-	XftColorAllocValue(dpy, DefaultVisual(dpy, DefaultScreen(dpy)), DefaultColormap(dpy, DefaultScreen(dpy)), &r, &color);
-    XGlyphInfo info;
-    XftTextExtentsUtf8(dpy, font, str, numChars, &info);
-    XftDrawStringUtf8(drawable->draw, &color, font, x + width/2 - info.width/2, y + height/2 + info.height /2, str, numChars);
+    int textWidth = dt_get_text_width(dis, font, str, numChars);
+    dt_draw(drawable->ctx, font, (dt_color*)&foreground, x + width/2 - textWidth/2, y + height/2, str, numChars);
 }
 
 void outlineRect(XDrawable* drawable, Color color, int numRects, const xcb_rectangle_t* rects) {
@@ -239,6 +219,7 @@ void setWindowProperties(XDrawable* drawable) {
     xcb_ewmh_request_change_wm_state(ewmh, 0, drawable->win, XCB_EWMH_WM_STATE_ADD, ewmh->_NET_WM_STATE_STICKY,
         ewmh->_NET_WM_STATE_ABOVE, source);
 }
+
 int getXFD() {
     return xcb_get_file_descriptor(dis);
 }
@@ -252,6 +233,7 @@ void processEvent(xcb_generic_event_t* event) {
     if(xEventHandlers[type])
         xEventHandlers[type](event);
 }
+
 void processAllQueuedEvents() {
     xcb_generic_event_t* event = xcb_poll_for_event(dis);
     do {
@@ -269,7 +251,6 @@ void grabSelection() {
     free(reply);
     xcb_set_selection_owner(dis, root, atom, XCB_CURRENT_TIME);
 }
-
 
 #define _ADD_EVENT_TYPE_CASE(TYPE) case TYPE: return #TYPE
 const char* opcodeToString(int opcode) {
@@ -290,4 +271,3 @@ void logError(xcb_generic_error_t* e) {
     printf("error occurred with seq %d resource %d. Error code: %d %s (%d %d)\n", e->sequence, e->resource_id, e->error_code,
         opcodeToString(e->major_code), e->major_code, e->minor_code);
 }
-
