@@ -96,7 +96,10 @@ static int initKeys(KeyGroup* keyGroup) {
         xcb_keysym_t* sym = NULL;
         keys[i].index = j++;
         if(keys[i].keySym) {
-            keys[i].keyCode = getKeyCode(keys[i].keySym, &sym);
+            char index;
+            keys[i].keyCode = getKeyCode(keys[i].keySym, &sym, &index);
+            if(index == 1)
+                keys[i].flags |= SHIFT;
             if(!keys[i].label) {
                 if(!getKeyChar(keys[i].keySym))
                     keys[i].label = XKeysymToString(keys[i].keySym);

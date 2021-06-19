@@ -23,9 +23,13 @@ static void pressAllModifiers(KeyGroup*keyGroup, int press) {
 void sendKeyReleaseWithModifiers(KeyGroup*keyGroup, Key* key) {
     sendKeyEvent(0, key->keyCode);
     pressAllModifiers(keyGroup, 0);
+    if(key->flags & SHIFT)
+        sendShiftKeyEvent(0);
 }
 
 void sendKeyPressWithModifiers(KeyGroup*keyGroup, Key* key) {
+    if(key->flags & SHIFT)
+        sendShiftKeyEvent(1);
     pressAllModifiers(keyGroup, 1);
     sendKeyEvent(1, key->keyCode);
 }
@@ -36,7 +40,7 @@ void typeKey(KeyGroup*keyGroup, Key* key) {
 }
 
 void activateBoard(KeyGroup*keyGroup, Key*key) {
-    activateBoardByName(key->label);
+    activateBoardByName(key->arg.s ? key->arg.s: key->label);
 }
 
 void setKeyEnv(const Key* key) {

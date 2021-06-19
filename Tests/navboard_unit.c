@@ -165,3 +165,23 @@ SCUTEST(test_activate_boards_click_and_cycle) {
         triggerCellAtPosition(0, RELEASE, win, 0, 0);
     }
 }
+
+SCUTEST(test_swap_boards) {
+    static Key keys[][1] = {
+        {{.label="A", .onPress=activateBoard, .arg="B"}},
+        {{.label="B", .onPress=activateBoard, .arg="A"}},
+    };
+    boards[numBoards] = CREATE_BOARD("A", keys[0], 1);
+    initBoard(&boards[numBoards++]);
+    boards[numBoards] = CREATE_BOARD("B", keys[1], 1);
+    initBoard(&boards[numBoards++]);
+    activateBoardByName("B");
+    for(int i = 0; i < 10; i++) {
+        computeRects(getActiveBoard()->keyGroup);
+        Board* board = getActiveBoard();
+        int win = *(xcb_window_t*)board->keyGroup->drawable;
+        triggerCellAtPosition(0, PRESS, win, 0, 0);
+        triggerCellAtPosition(0, RELEASE, win, 0, 0);
+        assert(board != getActiveBoard());
+    }
+}

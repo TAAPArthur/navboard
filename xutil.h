@@ -6,12 +6,13 @@ void initConnection(void);
 void closeConnection();
 
 void sendKeyEvent(char press, xcb_keycode_t keyCode);
+void sendShiftKeyEvent(char press);
 XDrawable* createWindow(uint32_t windowMasks);
 void setRootDims(uint16_t width, uint16_t height);
 
 char getKeyChar(xcb_keysym_t sym);
 
-int getKeyCode(xcb_keysym_t targetSym, xcb_keysym_t** foundSym);
+xcb_keycode_t getKeyCode(xcb_keysym_t targetSym, xcb_keysym_t** foundSym, char* symIndex);
 
 void drawText(XDrawable* win, int numChars, const char*str, Color foreground, int x, int y, int w, int h);
 

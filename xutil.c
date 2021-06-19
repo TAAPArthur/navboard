@@ -24,6 +24,7 @@ dt_font *font;
 
 
 static int avgNumberLengthWithCurrentFont;
+static xcb_keycode_t keyCodeShift;
 
 
 struct xdrawable {
@@ -51,6 +52,7 @@ void initConnection() {
 
     int mask = XCB_EVENT_MASK_STRUCTURE_NOTIFY;
     xcb_change_window_attributes(dis, root, XCB_CW_EVENT_MASK, &mask);
+    keyCodeShift = getKeyCode(XK_Shift_L, NULL, NULL);
 }
 
 void setRootDims(uint16_t width, uint16_t height){
@@ -144,6 +146,10 @@ void sendKeyEvent(char press, xcb_keycode_t keyCode) {
     xcb_test_fake_input(dis, press ? XCB_KEY_PRESS : XCB_KEY_RELEASE, keyCode, XCB_CURRENT_TIME, root, 0, 0, 0);
 }
 
+void sendShiftKeyEvent(char press) {
+    sendKeyEvent(press, keyCodeShift);
+}
+
 char getKeyChar(xcb_keysym_t sym) {
     if(XK_space <= sym && sym <= XK_asciitilde) {
         return sym  - XK_space + ' ';
@@ -165,7 +171,7 @@ int dumpKeyCodes() {
     return 0;
 }
 
-int getKeyCode(xcb_keysym_t targetSym, xcb_keysym_t** foundSym) {
+xcb_keycode_t getKeyCode(xcb_keysym_t targetSym, xcb_keysym_t** foundSym, char* symIndex) {
     int          nkeycodes = keyboard_mapping->length / keyboard_mapping->keysyms_per_keycode;
     xcb_keysym_t* keysyms  = (xcb_keysym_t*)(keyboard_mapping +
             1);  // `xcb_keycode_t` is just a `typedef u8`, and `xcb_keysym_t` is just a `typedef u32`
@@ -173,7 +179,10 @@ int getKeyCode(xcb_keysym_t targetSym, xcb_keysym_t** foundSym) {
         for(int keysym_idx = 0; keysym_idx < keyboard_mapping->keysyms_per_keycode; ++keysym_idx) {
             xcb_keysym_t*  sym = &keysyms[keysym_idx + keycode_idx * keyboard_mapping->keysyms_per_keycode];
             if(*sym == targetSym) {
-                *foundSym = sym;
+                if(foundSym)
+                    *foundSym = sym;
+                if(symIndex)
+                    *symIndex = keysym_idx;
                 return xSetup->min_keycode + keycode_idx;
             }
         }
