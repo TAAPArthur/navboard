@@ -1,4 +1,5 @@
 #include "../navboard.h"
+#include "../functions.h"
 Key keys_mobile[] = {
     {XK_1},
     {XK_2},
@@ -12,7 +13,6 @@ Key keys_mobile[] = {
     {XK_0},
     {XK_BackSpace, .weight = 2},
     {0 }, /* New row */
-    {XK_Tab, .weight = 1},
     {XK_q},
     {XK_w},
     {XK_e},
@@ -34,7 +34,6 @@ Key keys_mobile[] = {
     {XK_j},
     {XK_k},
     {XK_l},
-    {XK_Return, .weight = 1},
     {0}, /* New row */
     {XK_Shift_L, .weight = 1},
     {XK_z},
@@ -45,9 +44,53 @@ Key keys_mobile[] = {
     {XK_n},
     {XK_m},
     {0}, /* New row */
+    {.label="Sym", .onRelease=activateBoard, .arg="mobile_symb"},
+    {XK_Tab, .weight = 1},
     {XK_comma, .weight = 1},
     {XK_space, .weight = 5},
     {XK_period, .weight = 1},
+    {XK_Return, .weight = 1},
+};
+
+Key keys_mobile_symb[] = {
+    {XK_grave},
+    {XK_asciitilde},
+    {XK_at},
+    {XK_numbersign},
+    {XK_dollar},
+    {XK_asciicircum},
+    {XK_underscore},
+    {0 }, /* New row */
+    {XK_parenleft},
+    {XK_parenright},
+    {XK_bracketright},
+    {XK_bracketleft},
+    {XK_bracketright},
+    {XK_braceleft},
+    {XK_braceright},
+    {XK_backslash},
+    {0 }, /* New row */
+    {XK_asterisk},
+    {XK_percent},
+    {XK_slash},
+    {XK_plus},
+    {XK_minus},
+    {XK_equal},
+    {XK_ampersand},
+    {XK_bar},
+    {0 }, /* New row */
+    {XK_semicolon},
+    {XK_colon},
+    {XK_period},
+    {XK_quotedbl},
+    {XK_apostrophe},
+    {XK_question},
+    {0 }, /* New row */
+    {.label="Nor", .onRelease=activateBoard, .arg="mobile"},
+    {XK_space, .weight = 5},
+    {XK_BackSpace, .weight = 2},
+    {0 }, /* New row */
 };
 
 REGISTER(mobile, keys_mobile);
+REGISTER(mobile_symb, keys_mobile_symb);
