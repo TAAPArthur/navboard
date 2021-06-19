@@ -326,8 +326,10 @@ void buttonEvent(xcb_button_press_event_t* event) {
 void cleanupKeygroup(KeyGroup* keyGroup) {
     if(keyGroup->drawable)
         destroyWindow(keyGroup->drawable);
-    if(keyGroup->rects)
+    if(keyGroup->rects) {
         free(keyGroup->rects);
+        keyGroup->rects = NULL;
+    }
 }
 void cleanupBoard(Board*board) {
     for(int i = 0; i < board->groupSize; i++) {
