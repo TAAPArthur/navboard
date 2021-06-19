@@ -41,7 +41,7 @@ test: navboard-test
 
 clean:
 	find . -name "*.o" -exec rm {} +
-	rm -f *-test $(BIN)
+	rm -f *-test $(BIN) *.so *.a
 
 .PHONY: clean install uninstall install-headers
 

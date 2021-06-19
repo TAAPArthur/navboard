@@ -37,6 +37,7 @@ static int16_t getXPos() {
 Board* getActiveBoard() {
     return &boards[activeIndex];
 }
+
 int setActiveBoard(const char* name) {
     for(int i = 0; i < numBoards; i++) {
         if(strcmp(name, boards[i].name) ==0){
@@ -356,7 +357,7 @@ int activateBoardByName(const char*name) {
 
 void activateBoard(KeyGroup*keyGroup, Key*key);
 
-void createBoardOrBoards() {
+static void createBoardOfBoards() {
     int numColumns = 3;
     int numRows = numBoards / numColumns;
     int numKeys = numBoards + numRows - 1;
@@ -387,7 +388,7 @@ void usage() {
 }
 
 int __attribute__((weak)) main(int argc, const char* args[]) {
-    createBoardOrBoards();
+    createBoardOfBoards();
     int i;
     for(i=1; i < argc; i++) {
         if(args[i][0] == '-')
