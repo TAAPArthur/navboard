@@ -339,7 +339,7 @@ void cleanupBoard(Board*board) {
     }
 }
 void setupWindowsForBoard(Board*board) {
-    setFont(board->fontName);
+    setFont(board->fontName, board->fontSize);
     for(int i = 0; i < board->groupSize; i++) {
         KeyGroup* keyGroup=&board->keyGroup[i];
         keyGroup->drawable=createWindow(WINDOW_MASKS);

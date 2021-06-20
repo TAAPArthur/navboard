@@ -36,7 +36,7 @@ void destroyWindow(XDrawable* drawable);
 void mapWindow(XDrawable* drawable);
 int xFlush();
 
-void setFont(const char* fontName);
+void setFont(const char* fontName, int size);
 void grabSelection();
 #endif
 

@@ -61,20 +61,24 @@ void setRootDims(uint16_t width, uint16_t height){
 }
 
 void closeConnection() {
-    setFont(NULL);
+    setFont(NULL, 0);
     free(keyboard_mapping);
     xcb_ewmh_connection_wipe(ewmh);
     xcb_disconnect(dis);
 }
 
-void setFont(const char* fontName) {
+void setFont(const char* fontName, int size) {
     if(font) {
         dt_free_font(dis, font);
         font = NULL;
     }
 
     if(fontName) {
-        dt_load_font(dis, &font, fontName);
+        dt_load_font(dis, &font, fontName, size);
+        if(!font) {
+            printf("Could not load font name %s\n", fontName);
+            exit(1);
+        }
         avgNumberLengthWithCurrentFont = dt_get_text_width(dis, font, "0123456789", 10) / 10;
     }
 }

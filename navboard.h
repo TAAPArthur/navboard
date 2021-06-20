@@ -72,6 +72,7 @@ typedef struct Layout {
     KeyGroup keyGroup[1];
     const char*name;
     const char*fontName;
+    int fontSize;
 } Board;
 extern Board boards[MAX_BOARDS];
 extern int numBoards;
@@ -122,7 +123,7 @@ void exposeEvent(xcb_expose_event_t* event);
     CREATE_KEYGROUP(KEYS, NUM_KEYS, DEFAULT_DOCK_TYPE, 0, 0, DEFAULT_THICKNESS, DEFAULT_OUTLINE_COLOR)
 
 #define CREATE_BOARD(NAME, KEYS, NUM_KEYS) (Board)\
-{1, {CREATE_DEFAULT_KEYGROUP(KEYS, NUM_KEYS)}, .name=NAME, .fontName=DEFAULT_FONT }
+{1, {CREATE_DEFAULT_KEYGROUP(KEYS, NUM_KEYS)}, .name=NAME, .fontName=DEFAULT_FONT_NAME, .fontSize=DEFAULT_FONT_SIZE }
 
 #define REGISTER(NAME, KEYS) \
     REGISTER_BOARD(NAME, CREATE_BOARD(#NAME, KEYS, LEN(KEYS)))
