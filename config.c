@@ -30,6 +30,6 @@ Key defaults[] = {
     {XK_Super_L,    .label="Super",  .flags = MOD | LATCH },
     {XK_Super_R,    .label="Super",  .flags = MOD | LATCH },
     {XK_space,      .label=" ", .onPress=sendKeyPressWithModifiers, .onRelease = sendKeyReleaseWithModifiers},
-    {-1 , .onPress=sendKeyPressWithModifiers, .onRelease = sendKeyReleaseWithModifiers},
+    {-1 , .onRelease = typeKey},
     {0}
 };
