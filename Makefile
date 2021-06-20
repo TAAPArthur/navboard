@@ -1,12 +1,13 @@
-DEBUGGING_FLAGS := -std=c99 -g -rdynamic -O0 -Werror -Wno-missing-field-initializers -Wno-sign-compare
-RELEASE_FLAGS ?= -std=c99 -O3 -DNDEBUG -Werror -Wno-missing-field-initializers -Wno-sign-compare -Wno-missing-braces
+CFLAGS ?= -std=c99
+DEBUGGING_FLAGS := -g -rdynamic -O0
+RELEASE_FLAGS := -O3 -DNDEBUG
 ifndef DEBUG
-CFLAGS ?= $(RELEASE_FLAGS)
+CFLAGS += $(RELEASE_FLAGS)
 else
-CFLAGS ?= $(DEBUGGING_FLAGS)
+CFLAGS += $(DEBUGGING_FLAGS)
 endif
+CFLAGS += -fPIC -Werror -Wno-missing-field-initializers
 SRCS := config.c util.c navboard.c xutil.c functions.c
-CFLAGS += -fPIC
 BIN := navboard
 BOARDS ?= $(wildcard boards/*.c)
 BOARDS_OBJ ?= $(BOARDS:.c=.o)
@@ -27,7 +28,7 @@ uninstall:
 	rm -f "$(DESTDIR)/usr/lib/libnavboard.so"
 
 libnavboard.so: $(SRCS:.c=.o) $(BOARDS_OBJ)
-	${CC} ${CFLAGS} -fPIC -shared -o $@ $^ ${CFLAGS} ${LDFLAGS}
+	${CC} ${CFLAGS} -shared -o $@ $^ ${LDFLAGS}
 
 navboard: $(SRCS:.c=.o) $(BOARDS_OBJ)
 	$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS)
