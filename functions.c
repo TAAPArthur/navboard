@@ -15,6 +15,8 @@ static void pressAllModifiers(KeyGroup*keyGroup, int press) {
             sendKeyEvent(press, keyGroup->keys[i].keyCode);
             if(!press && (keyGroup->keys[i].flags & LATCH)&& !(keyGroup->keys[i].flags & LOCK)) {
                 keyGroup->keys[i].pressed = 0;
+                if(keyGroup->keys[i].onPress)
+                    keyGroup->keys[i].onPress(keyGroup, &keyGroup->keys[i]);
             }
         }
     }
