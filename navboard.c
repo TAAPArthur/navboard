@@ -295,6 +295,8 @@ void triggerCellAtPosition(int id, TriggerType type, xcb_window_t win, int x, in
     Board * board = getActiveBoard();
     if(type == PRESS) {
         keyGroup = getKeyGroupForWindow(win);
+        if(!keyGroup)
+            return;
         key = findKey(keyGroup, x, y);
         keyStates[id] = (KeyState){keyGroup, key, {x, y}};
     } else {
