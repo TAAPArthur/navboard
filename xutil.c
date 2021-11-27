@@ -249,11 +249,14 @@ void processEvent(xcb_generic_event_t* event) {
 
 void processAllQueuedEvents() {
     xcb_generic_event_t* event = xcb_poll_for_event(dis);
-    do {
-        processEvent(event);
-        free(event);
-    } while((event = xcb_poll_for_queued_event(dis)));
-    xFlush();
+    while(event) {
+        do {
+            processEvent(event);
+            free(event);
+        } while((event = xcb_poll_for_queued_event(dis)));
+        xFlush();
+        event = xcb_poll_for_event(dis);
+    }
 }
 
 void grabSelection() {
