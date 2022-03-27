@@ -190,6 +190,7 @@ void computeRects(KeyGroup*keyGroup) {
 
 static void redrawCells(KeyGroup* keyGroup) {
     assert(keyGroup);
+    clear_drawable(keyGroup->drawable);
 
     char intBuffer[5];
     xcb_rectangle_t temp;
@@ -222,6 +223,8 @@ static void redrawCells(KeyGroup* keyGroup) {
         }
     }
     outlineRect(keyGroup->drawable, keyGroup->outlineColor, keyGroup->numRects, keyGroup->rects);
+
+    clear_window(keyGroup->drawable);
 }
 
 void configureNotify(xcb_configure_notify_event_t* event) {
@@ -229,6 +232,7 @@ void configureNotify(xcb_configure_notify_event_t* event) {
     if(keyGroup) {
         keyGroup->windowHeight = event->height;
         keyGroup->windowWidth = event->width;
+        onResize(keyGroup->drawable, event->width, event->height);
         computeRects(keyGroup);
         redrawCells(keyGroup);
     } else {

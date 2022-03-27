@@ -13,6 +13,7 @@
 
 static xcb_connection_t* dis;
 static xcb_window_t root;
+static uint32_t depth;
 static xcb_screen_t* screen;
 static xcb_ewmh_connection_t _ewmh;
 static xcb_ewmh_connection_t* ewmh = &_ewmh;
@@ -29,6 +30,9 @@ static xcb_keycode_t keyCodeShift;
 
 struct xdrawable {
     xcb_window_t win;
+    xcb_window_t drawable;
+    uint32_t width;
+    uint32_t height;
     dt_context *ctx;
 };
 
@@ -40,6 +44,7 @@ void initConnection() {
     xcb_ewmh_init_atoms_replies(ewmh, cookie, NULL);
     screen = ewmh->screens[0];
     root = screen->root;
+    depth = screen->root_depth;
     setRootDims(screen->width_in_pixels, screen->height_in_pixels);
 
     gc = xcb_generate_id(dis);
@@ -86,6 +91,9 @@ void setFont(const char* fontName, int size) {
 void destroyWindow(XDrawable* drawable){
     dt_free_context(drawable->ctx);
     xcb_destroy_window(dis, drawable->win);
+    if(drawable->drawable != drawable->win) {
+        xcb_free_pixmap(dis, drawable->drawable);
+    }
     free(drawable);
 }
 
@@ -101,11 +109,37 @@ XDrawable* createWindow(uint32_t windowMasks){
 
     dt_init_context(&drawable->ctx, dis, win);
     drawable->win = win;
+    drawable->drawable = win;
     return drawable;
 }
 
 void mapWindow(XDrawable* drawable){
     xcb_map_window(dis, drawable->win);
+}
+
+void onResize(XDrawable* drawable, uint32_t width, uint32_t height){
+        if(drawable->drawable == drawable->win || drawable->width != width || drawable->win != height) {
+            xcb_window_t pixmapId = xcb_generate_id (dis);
+            xcb_create_pixmap(dis, depth, pixmapId, root, width, height);
+            xcb_change_window_attributes(dis, drawable->win, XCB_CW_BACK_PIXMAP, &pixmapId);
+            if(drawable->drawable != drawable->win) {
+                xcb_free_pixmap(dis, drawable->drawable);
+            }
+            drawable->drawable = pixmapId;
+            drawable->width = width;
+            drawable->height = height;
+            dt_free_context(drawable->ctx);
+            dt_init_context(&drawable->ctx, dis, drawable->drawable);
+        }
+}
+
+void clear_drawable(XDrawable* drawable) {
+    xcb_rectangle_t rect = {0,0,drawable->width, drawable->height};
+    xcb_poly_fill_rectangle(dis, drawable->drawable, gc, 1, &rect);
+}
+
+void clear_window(XDrawable* drawable) {
+    xcb_clear_area(dis, 0, drawable->win, 0, 0, drawable->width, drawable->height);
 }
 
 void updateDockProperties(XDrawable* drawable, DockProperties dockProperties){
@@ -207,18 +241,18 @@ void drawText(XDrawable* drawable, int numChars, const char*str, Color foregroun
 
 void outlineRect(XDrawable* drawable, Color color, int numRects, const xcb_rectangle_t* rects) {
     xcb_change_gc(dis, gc, XCB_GC_FOREGROUND, (uint32_t[]){color});
-    xcb_poly_rectangle(dis, drawable->win, gc, numRects, rects);
+    xcb_poly_rectangle(dis, drawable->drawable, gc, numRects, rects);
 }
 
 void drawSlider(XDrawable* drawable, Color color, float percent, xcb_rectangle_t* rect, xcb_rectangle_t* rectUsed) {
     int width = avgNumberLengthWithCurrentFont * 3;
     *rectUsed = (xcb_rectangle_t){rect->x + percent * (rect->width - width) , rect->y, width, rect->height};
     xcb_change_gc(dis, gc, XCB_GC_FOREGROUND, (uint32_t[]){color});
-    xcb_poly_fill_rectangle(dis, drawable->win, gc, 1, rectUsed);
+    xcb_poly_fill_rectangle(dis, drawable->drawable, gc, 1, rectUsed);
 }
 void updateBackground(XDrawable* drawable, Color color, xcb_rectangle_t* rects) {
     xcb_change_gc(dis, gc, XCB_GC_FOREGROUND, (uint32_t[]){color});
-    xcb_poly_fill_rectangle(dis, drawable->win, gc, 1, rects);
+    xcb_poly_fill_rectangle(dis, drawable->drawable, gc, 1, rects);
 }
 
 void setWindowProperties(XDrawable* drawable) {

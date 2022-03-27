@@ -34,9 +34,13 @@ void logError(xcb_generic_error_t* e);
 
 void destroyWindow(XDrawable* drawable);
 void mapWindow(XDrawable* drawable);
+void onResize(XDrawable* drawable, uint32_t width, uint32_t height);
 int xFlush();
 
 void setFont(const char* fontName, int size);
 void grabSelection();
+
+void clear_drawable(XDrawable* drawable);
+void clear_window(XDrawable* drawable);
 #endif
 
