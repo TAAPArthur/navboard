@@ -1,15 +1,16 @@
+#define SCUTEST_IMPLEMENTATION
 #define SCUTEST_DEFINE_MAIN
 #include <assert.h>
-#include <stdlib.h>
-#include <scutest/tester.h>
+#include <scutest/scutest.h>
 #include <signal.h>
-#include <unistd.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
 
 
+#include "../functions.h"
 #include "../navboard.h"
 #include "../xutil.h"
-#include "../functions.h"
 
 SCUTEST(init_connection) {
     initConnection();

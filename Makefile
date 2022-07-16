@@ -42,7 +42,7 @@ navboard: $(SRCS:.c=.o) $(BOARDS_OBJ)
 
 CFLAGS := $(DEBUGGING_FLAGS) $(DTEXT_CFLAGS)
 navboard-test: $(wildcard Tests/*_unit.c) $(SRCS) $(BOARDS_OBJ)
-	$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS) -lscutest
+	$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS)
 
 test:
 test: navboard-test

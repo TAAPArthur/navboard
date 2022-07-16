@@ -1,7 +1,6 @@
 #include <assert.h>
-#include <scutest/tester.h>
+#include <scutest/scutest.h>
 #include <stdio.h>
-#include <string.h>
 #include <string.h>
 
 #include "../navboard.h"
