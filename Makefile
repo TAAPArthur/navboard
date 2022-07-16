@@ -41,7 +41,7 @@ libnavboard.so: $(SRCS:.c=.o) $(BOARDS_OBJ)
 navboard: $(SRCS:.c=.o) $(BOARDS_OBJ)
 	$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS)
 
-CFLAGS := $(DEBUGGING_FLAGS) $(DTEXT_CFLAGS)
+navboard-test: CFLAGS := $(DEBUGGING_FLAGS) $(DTEXT_CFLAGS)
 navboard-test: $(wildcard Tests/*_unit.c) $(SRCS) $(BOARDS_OBJ)
 	$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS)
 
