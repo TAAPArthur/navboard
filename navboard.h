@@ -48,7 +48,7 @@ typedef struct {
     Arg arg;
 
     // should not be manually set
-    char pressed;
+    int pressed;
     int index;
     KeyCode keyCode;
 } Key;

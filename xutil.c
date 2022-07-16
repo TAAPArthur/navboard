@@ -158,6 +158,7 @@ void updateDockProperties(XDrawable* drawable, DockProperties dockProperties) {
     }
 
     switch(dockType) {
+        default:
         case TOP:
         case LEFT:
             x = y = 0;
@@ -225,7 +226,7 @@ xcb_keycode_t getKeyCode(xcb_keysym_t targetSym, xcb_keysym_t** foundSym, char* 
             }
         }
     }
-    printf("Could not find %ld\n",targetSym);
+    printf("Could not find %d\n", targetSym);
     assert(0);
     return 0;
 }
@@ -236,22 +237,22 @@ int matchesWindow(XDrawable* drawable, xcb_window_t win) {
 
 void drawText(XDrawable* drawable, int numChars, const char*str, Color foreground,  int x, int y, int width, int height) {
     int textWidth = dt_get_text_width(dis, font, str, numChars);
-    dt_draw(drawable->ctx, font, (dt_color*)&foreground, x + width/2 - textWidth/2, y + height/2, str, numChars);
+    dt_draw(drawable->ctx, font, foreground, x + width/2 - textWidth/2, y + height/2, str, numChars);
 }
 
 void outlineRect(XDrawable* drawable, Color color, int numRects, const xcb_rectangle_t* rects) {
-    xcb_change_gc(dis, gc, XCB_GC_FOREGROUND, (uint32_t[]) {color});
+    xcb_change_gc(dis, gc, XCB_GC_FOREGROUND, &color);
     xcb_poly_rectangle(dis, drawable->drawable, gc, numRects, rects);
 }
 
 void drawSlider(XDrawable* drawable, Color color, float percent, xcb_rectangle_t* rect, xcb_rectangle_t* rectUsed) {
     int width = avgNumberLengthWithCurrentFont * 3;
     *rectUsed = (xcb_rectangle_t) {rect->x + percent * (rect->width - width) , rect->y, width, rect->height};
-    xcb_change_gc(dis, gc, XCB_GC_FOREGROUND, (uint32_t[]) {color});
+    xcb_change_gc(dis, gc, XCB_GC_FOREGROUND, &color);
     xcb_poly_fill_rectangle(dis, drawable->drawable, gc, 1, rectUsed);
 }
 void updateBackground(XDrawable* drawable, Color color, xcb_rectangle_t* rects) {
-    xcb_change_gc(dis, gc, XCB_GC_FOREGROUND, (uint32_t[]) {color});
+    xcb_change_gc(dis, gc, XCB_GC_FOREGROUND, &color);
     xcb_poly_fill_rectangle(dis, drawable->drawable, gc, 1, rects);
 }
 
@@ -276,7 +277,7 @@ int xFlush() {
 }
 
 void processEvent(xcb_generic_event_t* event) {
-    char type = event->response_type & 127;
+    int type = event->response_type & 127;
     if (xEventHandlers[type])
         xEventHandlers[type](event);
 }

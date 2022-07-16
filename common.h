@@ -1,5 +1,6 @@
 #ifndef NAVBOARD_COMMON_H
 #define NAVBOARD_COMMON_H
+#include <stdint.h>
 
 #define LEN(x)         (sizeof x / sizeof x[0])
 

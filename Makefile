@@ -6,7 +6,7 @@ CFLAGS += $(RELEASE_FLAGS)
 else
 CFLAGS += $(DEBUGGING_FLAGS)
 endif
-CFLAGS += -fPIC -Werror -Wno-missing-field-initializers
+CFLAGS += -fPIC -Wall -Werror -Wno-missing-field-initializers -Wno-missing-braces
 SRCS := config.c util.c navboard.c xutil.c functions.c
 BIN := navboard
 BOARDS ?= $(wildcard boards/*.c)

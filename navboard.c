@@ -192,7 +192,7 @@ static void redrawCells(KeyGroup* keyGroup) {
     assert(keyGroup);
     clear_drawable(keyGroup->drawable);
 
-    char intBuffer[5];
+    char intBuffer[7];
     xcb_rectangle_t temp;
     for (int i = 0, n = 0; i < keyGroup->numKeys; i++) {
         if (!isRowSeperator(&keyGroup->keys[i])) {
