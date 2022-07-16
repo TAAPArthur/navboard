@@ -18,14 +18,15 @@ all: $(BIN) libnavboard.so
 
 install: $(BIN) libnavboard.so
 	install -m 0755 -Dt "$(DESTDIR)/usr/lib/" libnavboard.so
-	install -m 0755 -Dt "$(DESTDIR)/usr/bin/" $(BIN)
-	install -m 0755 -D $(BIN)-local.sh "$(DESTDIR)/usr/bin/$(BIN)-local"
+	install -m 0755 -D $(BIN).sh "$(DESTDIR)/usr/bin/$(BIN)"
+	install -m 0755 -D $(BIN) "$(DESTDIR)/usr/libexec/$(BIN)"
 	install -m 0755 -Dt "$(DESTDIR)/usr/include/navboard/" *.h
 
 uninstall:
 	rm -f "$(DESTDIR)/usr/bin/$(BIN)"
-	rm -f "$(DESTDIR)/usr/bin/$(BIN)-local"
+	rm -f "$(DESTDIR)/usr/libexec/$(BIN)"
 	rm -f "$(DESTDIR)/usr/lib/libnavboard.so"
+	rm -fr "$(DESTDIR)/usr/include/navboard"
 
 libnavboard.so: $(SRCS:.c=.o) $(BOARDS_OBJ)
 	${CC} ${CFLAGS} -shared -o $@ $^ ${LDFLAGS}
