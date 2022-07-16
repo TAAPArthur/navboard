@@ -1,11 +1,11 @@
 #ifndef NAVBOARD_H
 #define NAVBOARD_H
+#include "common.h"
+#include "config.h"
 #include <X11/X.h>
 #include <X11/keysym.h>
 #include <X11/keysymdef.h>
 #include <xcb/xcb.h>
-#include "common.h"
-#include "config.h"
 
 
 #define SHIFT          (1<<0)
@@ -21,7 +21,7 @@ typedef enum {
 typedef union {
     const char* s;
     int i;
-}Arg;
+} Arg;
 
 typedef struct {
     KeySym keySym;
@@ -117,18 +117,18 @@ void exposeEvent(xcb_expose_event_t* event);
 
 
 #define CREATE_KEYGROUP(KEYS, NUM_KEYS, TYPE, START, END, THICKNESS, OUTLINE_COLOR) (KeyGroup)\
-    {KEYS, NUM_KEYS, .dockProperties={.type=TYPE, .start=START, .end=END, .thicknessPercent = THICKNESS}, .outlineColor=OUTLINE_COLOR}
+    {KEYS, NUM_KEYS, .dockProperties ={.type = TYPE, .start = START, .end = END, .thicknessPercent = THICKNESS}, .outlineColor = OUTLINE_COLOR}
 
 #define CREATE_DEFAULT_KEYGROUP(KEYS, NUM_KEYS) \
     CREATE_KEYGROUP(KEYS, NUM_KEYS, DEFAULT_DOCK_TYPE, 0, 0, DEFAULT_THICKNESS, DEFAULT_OUTLINE_COLOR)
 
 #define CREATE_BOARD(NAME, KEYS, NUM_KEYS) (Board)\
-{1, {CREATE_DEFAULT_KEYGROUP(KEYS, NUM_KEYS)}, .name=NAME, .fontName=DEFAULT_FONT_NAME, .fontSize=DEFAULT_FONT_SIZE }
+{1, {CREATE_DEFAULT_KEYGROUP(KEYS, NUM_KEYS)}, .name = NAME, .fontName = DEFAULT_FONT_NAME, .fontSize = DEFAULT_FONT_SIZE }
 
 #define REGISTER(NAME, KEYS) \
     REGISTER_BOARD(NAME, CREATE_BOARD(#NAME, KEYS, LEN(KEYS)))
 
 #define REGISTER_BOARD(NAME, BOARD) \
-__attribute__((constructor)) void __CAT(setup, NAME) () { boards[numBoards++] = BOARD;}
+__attribute__((constructor)) void __CAT(setup, NAME) () { boards[numBoards++] = BOARD; }
 
 #endif

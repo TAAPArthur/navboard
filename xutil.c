@@ -38,7 +38,7 @@ struct xdrawable {
 
 void initConnection() {
     dis = xcb_connect(NULL, NULL);
-    if(!dis)
+    if (!dis)
         exit(1);
     xcb_intern_atom_cookie_t* cookie = xcb_ewmh_init_atoms(dis, ewmh);
     xcb_ewmh_init_atoms_replies(ewmh, cookie, NULL);
@@ -60,7 +60,7 @@ void initConnection() {
     keyCodeShift = getKeyCode(XK_Shift_L, NULL, NULL);
 }
 
-void setRootDims(uint16_t width, uint16_t height){
+void setRootDims(uint16_t width, uint16_t height) {
     rootDims[0] = width;
     rootDims[1] = height;
 }
@@ -88,16 +88,16 @@ void setFont(const char* fontName, int size) {
     }
 }
 
-void destroyWindow(XDrawable* drawable){
+void destroyWindow(XDrawable* drawable) {
     dt_free_context(drawable->ctx);
     xcb_destroy_window(dis, drawable->win);
-    if(drawable->drawable != drawable->win) {
+    if (drawable->drawable != drawable->win) {
         xcb_free_pixmap(dis, drawable->drawable);
     }
     free(drawable);
 }
 
-XDrawable* createWindow(uint32_t windowMasks){
+XDrawable* createWindow(uint32_t windowMasks) {
     xcb_window_t win = xcb_generate_id(dis);
     xcb_create_window(dis, XCB_COPY_FROM_PARENT, win, root, 0, 0, 10, 10,
         0, XCB_WINDOW_CLASS_INPUT_OUTPUT,
@@ -142,14 +142,14 @@ void clear_window(XDrawable* drawable) {
     xcb_clear_area(dis, 0, drawable->win, 0, 0, drawable->width, drawable->height);
 }
 
-void updateDockProperties(XDrawable* drawable, DockProperties dockProperties){
+void updateDockProperties(XDrawable* drawable, DockProperties dockProperties) {
     DockType dockType = dockProperties.type;
     int start = dockProperties.start;
     int end = dockProperties.end == 0 ? rootDims[dockType < TOP] : dockProperties.end;
     int wmStructFields[4] = {0};
     int x,y;
     short width, height;
-    if(dockType < TOP) {
+    if (dockType < TOP) {
         width = wmStructFields[dockType] = rootDims[0] * dockProperties.thicknessPercent / 100;
         height = end - start;
     } else {
@@ -160,7 +160,7 @@ void updateDockProperties(XDrawable* drawable, DockProperties dockProperties){
     switch(dockType) {
         case TOP:
         case LEFT:
-            x = y =0;
+            x = y = 0;
             break;
         case RIGHT:
             y = 0;
@@ -189,7 +189,7 @@ void sendShiftKeyEvent(char press) {
 }
 
 char getKeyChar(xcb_keysym_t sym) {
-    if(XK_space <= sym && sym <= XK_asciitilde) {
+    if (XK_space <= sym && sym <= XK_asciitilde) {
         return sym  - XK_space + ' ';
     }
     return 0;
@@ -200,8 +200,8 @@ int dumpKeyCodes() {
     printf("NumKeyCodes %d %d\n", nkeycodes, keyboard_mapping->keysyms_per_keycode);
     xcb_keysym_t* keysyms  = (xcb_keysym_t*)(keyboard_mapping +
             1);  // `xcb_keycode_t` is just a `typedef u8`, and `xcb_keysym_t` is just a `typedef u32`
-    for(int keycode_idx = 0; keycode_idx < nkeycodes; ++keycode_idx) {
-        for(int keysym_idx = 0; keysym_idx < keyboard_mapping->keysyms_per_keycode; ++keysym_idx) {
+    for (int keycode_idx = 0; keycode_idx < nkeycodes; ++keycode_idx) {
+        for (int keysym_idx = 0; keysym_idx < keyboard_mapping->keysyms_per_keycode; ++keysym_idx) {
             xcb_keysym_t  sym = keysyms[keysym_idx + keycode_idx * keyboard_mapping->keysyms_per_keycode];
             printf("KeyCode: %d Sym: %d %d\n", xSetup->min_keycode + keycode_idx, sym, sym == XK_Shift_R);
         }
@@ -211,15 +211,15 @@ int dumpKeyCodes() {
 
 xcb_keycode_t getKeyCode(xcb_keysym_t targetSym, xcb_keysym_t** foundSym, char* symIndex) {
     int          nkeycodes = keyboard_mapping->length / keyboard_mapping->keysyms_per_keycode;
-    xcb_keysym_t* keysyms  = (xcb_keysym_t*)(keyboard_mapping +
-            1);  // `xcb_keycode_t` is just a `typedef u8`, and `xcb_keysym_t` is just a `typedef u32`
-    for(int keycode_idx = 0; keycode_idx < nkeycodes; ++keycode_idx) {
-        for(int keysym_idx = 0; keysym_idx < keyboard_mapping->keysyms_per_keycode; ++keysym_idx) {
+    // `xcb_keycode_t` is just a `typedef u8`, and `xcb_keysym_t` is just a `typedef u32`
+    xcb_keysym_t* keysyms  = (xcb_keysym_t*)(keyboard_mapping + 1);
+    for (int keycode_idx = 0; keycode_idx < nkeycodes; ++keycode_idx) {
+        for (int keysym_idx = 0; keysym_idx < keyboard_mapping->keysyms_per_keycode; ++keysym_idx) {
             xcb_keysym_t*  sym = &keysyms[keysym_idx + keycode_idx * keyboard_mapping->keysyms_per_keycode];
-            if(*sym == targetSym) {
-                if(foundSym)
+            if (*sym == targetSym) {
+                if (foundSym)
                     *foundSym = sym;
-                if(symIndex)
+                if (symIndex)
                     *symIndex = keysym_idx;
                 return xSetup->min_keycode + keycode_idx;
             }
@@ -230,7 +230,7 @@ xcb_keycode_t getKeyCode(xcb_keysym_t targetSym, xcb_keysym_t** foundSym, char* 
     return 0;
 }
 
-int matchesWindow(XDrawable* drawable, xcb_window_t win){
+int matchesWindow(XDrawable* drawable, xcb_window_t win) {
     return drawable->win == win;
 }
 
@@ -240,18 +240,18 @@ void drawText(XDrawable* drawable, int numChars, const char*str, Color foregroun
 }
 
 void outlineRect(XDrawable* drawable, Color color, int numRects, const xcb_rectangle_t* rects) {
-    xcb_change_gc(dis, gc, XCB_GC_FOREGROUND, (uint32_t[]){color});
+    xcb_change_gc(dis, gc, XCB_GC_FOREGROUND, (uint32_t[]) {color});
     xcb_poly_rectangle(dis, drawable->drawable, gc, numRects, rects);
 }
 
 void drawSlider(XDrawable* drawable, Color color, float percent, xcb_rectangle_t* rect, xcb_rectangle_t* rectUsed) {
     int width = avgNumberLengthWithCurrentFont * 3;
-    *rectUsed = (xcb_rectangle_t){rect->x + percent * (rect->width - width) , rect->y, width, rect->height};
-    xcb_change_gc(dis, gc, XCB_GC_FOREGROUND, (uint32_t[]){color});
+    *rectUsed = (xcb_rectangle_t) {rect->x + percent * (rect->width - width) , rect->y, width, rect->height};
+    xcb_change_gc(dis, gc, XCB_GC_FOREGROUND, (uint32_t[]) {color});
     xcb_poly_fill_rectangle(dis, drawable->drawable, gc, 1, rectUsed);
 }
 void updateBackground(XDrawable* drawable, Color color, xcb_rectangle_t* rects) {
-    xcb_change_gc(dis, gc, XCB_GC_FOREGROUND, (uint32_t[]){color});
+    xcb_change_gc(dis, gc, XCB_GC_FOREGROUND, (uint32_t[]) {color});
     xcb_poly_fill_rectangle(dis, drawable->drawable, gc, 1, rects);
 }
 
@@ -277,17 +277,17 @@ int xFlush() {
 
 void processEvent(xcb_generic_event_t* event) {
     char type = event->response_type & 127;
-    if(xEventHandlers[type])
+    if (xEventHandlers[type])
         xEventHandlers[type](event);
 }
 
 void processAllQueuedEvents() {
     xcb_generic_event_t* event = xcb_poll_for_event(dis);
-    while(event) {
+    while (event) {
         do {
             processEvent(event);
             free(event);
-        } while((event = xcb_poll_for_queued_event(dis)));
+        } while ((event = xcb_poll_for_queued_event(dis)));
         xFlush();
         event = xcb_poll_for_event(dis);
     }

@@ -11,8 +11,8 @@
 #include <xcb/xtest.h>
 
 #include "navboard.h"
-#include "xutil.h"
 #include "util.h"
+#include "xutil.h"
 
 Board boards[MAX_BOARDS];
 int numBoards = 0;
@@ -39,8 +39,8 @@ Board* getActiveBoard() {
 }
 
 int setActiveBoard(const char* name) {
-    for(int i = 0; i < numBoards; i++) {
-        if(strcmp(name, boards[i].name) ==0){
+    for (int i = 0; i < numBoards; i++) {
+        if (strcmp(name, boards[i].name) == 0) {
             activeIndex = i;
             return 1;
         }
@@ -48,20 +48,20 @@ int setActiveBoard(const char* name) {
     return 0;
 }
 
-#define SET_DEFAULT(K,V) if(K == 0) K = V
+#define SET_DEFAULT(K,V) if (K == 0) K = V
 void setDefaults(Key* key) {
     SET_DEFAULT(key->weight, 1);
     SET_DEFAULT(key->foreground, DEFAULT_TEXT_COLOR);
     SET_DEFAULT(key->background[0], DEFAULT_CELL_COLOR);
     SET_DEFAULT(key->background[1], key->flags & KEY_DISABLED ? DEFAULT_CELL_COLOR_DISABLED : DEFAULT_CELL_COLOR_PRESSED);
-    for(int i = 0; defaults[i].keySym; i++) {
-        if((key->keySym == defaults[i].keySym) || (key->keySym && defaults[i].keySym == -1)) {
-            if(!key->label)
+    for (int i = 0; defaults[i].keySym; i++) {
+        if ((key->keySym == defaults[i].keySym) || (key->keySym && defaults[i].keySym == -1)) {
+            if (!key->label)
                 key->label = defaults[i].label;
             key->flags |= defaults[i].flags;
-            if(!key->onPress)
+            if (!key->onPress)
                 key->onPress = defaults[i].onPress;
-            if(!key->onRelease)
+            if (!key->onRelease)
                 key->onRelease = defaults[i].onRelease;
             break;
         }
@@ -75,8 +75,8 @@ char isRowSeperator(Key* key) {
 
 int getNumRows(KeyGroup* keyGroup) {
     int rows = 1;
-    for(int i = 0; i < keyGroup->numKeys - 1; i++) {
-        rows+=isRowSeperator(&keyGroup->keys[i]);
+    for (int i = 0; i < keyGroup->numKeys - 1; i++) {
+        rows += isRowSeperator(&keyGroup->keys[i]);
     }
     return rows;
 }
@@ -86,29 +86,29 @@ static int initKeys(KeyGroup* keyGroup) {
     int n = keyGroup->numKeys;
     int i, j;
 
-    for(i = 0, j = 0; i < n; i++) {
-        if(isRowSeperator(&keys[i]))
+    for (i = 0, j = 0; i < n; i++) {
+        if (isRowSeperator(&keys[i]))
             continue;
         setDefaults(&keys[i]);
 
-        if(keys[i].loadValue && !(keys[i].flags & KEY_DISABLED)) {
+        if (keys[i].loadValue && !(keys[i].flags & KEY_DISABLED)) {
             keys[i].loadValue(keyGroup, keys + i);
         }
         xcb_keysym_t* sym = NULL;
         keys[i].index = j++;
-        if(keys[i].keySym) {
+        if (keys[i].keySym) {
             char index;
             keys[i].keyCode = getKeyCode(keys[i].keySym, &sym, &index);
-            if(index == 1)
+            if (index == 1)
                 keys[i].flags |= SHIFT;
-            if(!keys[i].label) {
-                if(!getKeyChar(keys[i].keySym))
+            if (!keys[i].label) {
+                if (!getKeyChar(keys[i].keySym))
                     keys[i].label = XKeysymToString(keys[i].keySym);
             }
 
-            if(sym && !keys[i].keySymShift) {
+            if (sym && !keys[i].keySymShift) {
                 keys[i].keySymShift = sym[1];
-                if(!keys[i].altLabel)
+                if (!keys[i].altLabel)
                     keys[i].altLabel = getKeyChar(sym[1]) ? NULL: keys[i].label;
             }
         }
@@ -122,20 +122,20 @@ void initKeyGroup(KeyGroup* keyGroup) {
     initKeys(keyGroup);
 }
 void initBoard(Board* board) {
-    for(int n = 0; n < board->groupSize; n++) {
+    for (int n = 0; n < board->groupSize; n++) {
         initKeyGroup(&board->keyGroup[n]);
     }
 }
 
 void initBoards() {
-    for(int i = 0; i < numBoards; i++) {
+    for (int i = 0; i < numBoards; i++) {
         initBoard(boards + i);
     }
 }
 
 KeyGroup* getKeyGroupForWindow(xcb_window_t win) {
-    for(int i = 0; i < getActiveBoard()->groupSize; i++) {
-        if(matchesWindow(getActiveBoard()->keyGroup[i].drawable, win))
+    for (int i = 0; i < getActiveBoard()->groupSize; i++) {
+        if (matchesWindow(getActiveBoard()->keyGroup[i].drawable, win))
             return &getActiveBoard()->keyGroup[i];
     }
     return NULL;
@@ -145,9 +145,9 @@ Key* findKey(KeyGroup* keyGroup, int x, int y) {
     assert(keyGroup);
     assert(keyGroup->numKeys);
     assert(keyGroup->rects);
-    for(int i = 0, n = 0; i < keyGroup->numKeys; i++) {
-        if(!isRowSeperator(&keyGroup->keys[i])) {
-            if(keyGroup->rects[n].x <= x && x <= keyGroup->rects[n].x + keyGroup->rects[n].width &&
+    for (int i = 0, n = 0; i < keyGroup->numKeys; i++) {
+        if (!isRowSeperator(&keyGroup->keys[i])) {
+            if (keyGroup->rects[n].x <= x && x <= keyGroup->rects[n].x + keyGroup->rects[n].width &&
                 keyGroup->rects[n].y <= y && y <= keyGroup->rects[n].y + keyGroup->rects[n].height) {
                 return &keyGroup->keys[i];
             }
@@ -162,21 +162,21 @@ void computeRects(KeyGroup*keyGroup) {
     int rows = keyGroup->numRows;
     int heightPerRow = (keyGroup->windowHeight) / rows;
     int width = keyGroup->windowWidth ;
-    int numKeys= keyGroup->numKeys;
+    int numKeys = keyGroup->numKeys;
     keyGroup->rects = realloc(keyGroup->rects, sizeof(xcb_rectangle_t) * keyGroup->numKeys);
     int y = 0;
     int i, n;
-    for(i = 0, n = 0; i < numKeys; i++) {
-        if(isRowSeperator(&keyGroup->keys[i]))
+    for (i = 0, n = 0; i < numKeys; i++) {
+        if (isRowSeperator(&keyGroup->keys[i]))
             continue;
         int numCols = 0;
-        for(int j = i; j < numKeys && !isRowSeperator(&keyGroup->keys[j]); j++)
+        for (int j = i; j < numKeys && !isRowSeperator(&keyGroup->keys[j]); j++)
             numCols += keyGroup->keys[j].weight;
         assert(numCols);
         int rem = numCols - width % numCols;
-        for(int x = 0; i < numKeys && !isRowSeperator(&keyGroup->keys[i]); i++) {
+        for (int x = 0; i < numKeys && !isRowSeperator(&keyGroup->keys[i]); i++) {
             keyGroup->rects[n] = (xcb_rectangle_t) { x, y, keyGroup->keys[i].weight* width / numCols, heightPerRow };
-            if(!rem) {
+            if (!rem) {
                 keyGroup->rects[n].width += 1;
             } else
                 rem--;
@@ -194,16 +194,16 @@ static void redrawCells(KeyGroup* keyGroup) {
 
     char intBuffer[5];
     xcb_rectangle_t temp;
-    for(int i = 0, n = 0; i < keyGroup->numKeys; i++) {
-        if(!isRowSeperator(&keyGroup->keys[i])){
-            Key*key=&keyGroup->keys[i];
+    for (int i = 0, n = 0; i < keyGroup->numKeys; i++) {
+        if (!isRowSeperator(&keyGroup->keys[i])) {
+            Key*key =&keyGroup->keys[i];
             updateBackground(keyGroup->drawable, key->background[key->pressed], &keyGroup->rects[key->index]);
             const char* rawLabel = (&key->label)[keyGroup->level];
             const char c = getKeyChar((&key->keySym)[keyGroup->level]);
             const char* label = rawLabel ? rawLabel : &c;
             int labelSize = rawLabel ? strlen(rawLabel) : 1;
             xcb_rectangle_t* rect = keyGroup->rects + n;
-            if(isSlider(key)) {
+            if (isSlider(key)) {
                 float percent = (key->value - key->min)/ (float)(key->max - key->min);
                 drawSlider(keyGroup->drawable, key->background[1], percent, rect, &temp);
                 rect = &temp;
@@ -229,7 +229,7 @@ static void redrawCells(KeyGroup* keyGroup) {
 
 void configureNotify(xcb_configure_notify_event_t* event) {
     KeyGroup* keyGroup = getKeyGroupForWindow(event->window);
-    if(keyGroup) {
+    if (keyGroup) {
         keyGroup->windowHeight = event->height;
         keyGroup->windowWidth = event->width;
         onResize(keyGroup->drawable, event->width, event->height);
@@ -237,8 +237,8 @@ void configureNotify(xcb_configure_notify_event_t* event) {
         redrawCells(keyGroup);
     } else {
         setRootDims( event->width, event->height);
-        for(int i = 0; i < getActiveBoard()->groupSize; i++) {
-            KeyGroup* keyGroup=&getActiveBoard()->keyGroup[i];
+        for (int i = 0; i < getActiveBoard()->groupSize; i++) {
+            KeyGroup* keyGroup =&getActiveBoard()->keyGroup[i];
             updateDockProperties(keyGroup->drawable, keyGroup->dockProperties);
         }
         xFlush();
@@ -246,13 +246,13 @@ void configureNotify(xcb_configure_notify_event_t* event) {
 }
 
 void exposeEvent(xcb_expose_event_t* event) {
-    if(event->count == 0)
+    if (event->count == 0)
         redrawCells(getKeyGroupForWindow(event->window));
 }
 
 
-#define MAX(A, B) (A>B?A:B)
-#define MIN(A, B) (A<B?A:B)
+#define MAX(A, B) (A > B ? A:B)
+#define MIN(A, B) (A < B ? A:B)
 void dragSlider(KeyGroup*keyGroup, Key* key) {
     float percent = (getXPos() - keyGroup->rects[key->index].x)/ (float)keyGroup->rects[key->index].width;
     float delta = MAX(0, MIN(1, percent ));
@@ -260,23 +260,23 @@ void dragSlider(KeyGroup*keyGroup, Key* key) {
 }
 
 void triggerCell(KeyGroup*keyGroup, Key*key, TriggerType type) {
-    if(!key || key->flags & KEY_DISABLED) {
+    if (!key || key->flags & KEY_DISABLED) {
         return;
     }
-    if(hasLatchFlag(key) && type != PRESS )
+    if (hasLatchFlag(key) && type != PRESS )
         return;
-    if(!isSlider(key)) {
-        if(type == PRESS || type == RELEASE ) {
+    if (!isSlider(key)) {
+        if (type == PRESS || type == RELEASE ) {
             key->pressed = hasLatchFlag(key) ? !key->pressed: type == PRESS;
         }
-    } else if(type == DRAG) {
+    } else if (type == DRAG) {
         dragSlider(keyGroup, key);
     }
-    if(type == PRESS && key->onPress)
+    if (type == PRESS && key->onPress)
         key->onPress(keyGroup, key);
-    else if(type == RELEASE && key->onRelease)
+    else if (type == RELEASE && key->onRelease)
         key->onRelease(keyGroup, key);
-    else if(type == DRAG && key->onDrag)
+    else if (type == DRAG && key->onDrag)
         key->onDrag(keyGroup, key);
 
 }
@@ -297,27 +297,27 @@ void triggerCellAtPosition(int id, TriggerType type, xcb_window_t win, int x, in
     KeyGroup*keyGroup;
     Key* key;
     Board * board = getActiveBoard();
-    if(type == PRESS) {
+    if (type == PRESS) {
         keyGroup = getKeyGroupForWindow(win);
-        if(!keyGroup)
+        if (!keyGroup)
             return;
         key = findKey(keyGroup, x, y);
-        keyStates[id] = (KeyState){keyGroup, key, {x, y}};
+        keyStates[id] = (KeyState) {keyGroup, key, {x, y} };
     } else {
         keyGroup = keyStates[id].keyGroup;
         key = keyStates[id].key;
         keyStates[id].current[0] = x;
         keyStates[id].current[1] = y;
 
-        if(!key)
+        if (!key)
             return;
-        if(type == RELEASE) {
+        if (type == RELEASE) {
             keyStates[id].keyGroup = NULL;
             keyStates[id].key = NULL;
         }
     }
     triggerCell(keyGroup, key, type);
-    if(board == getActiveBoard()) {
+    if (board == getActiveBoard()) {
         redrawCells(keyGroup);
     } else {
         keyStates[id].keyGroup = NULL;
@@ -330,23 +330,23 @@ void buttonEvent(xcb_button_press_event_t* event) {
 }
 
 void cleanupKeygroup(KeyGroup* keyGroup) {
-    if(keyGroup->drawable)
+    if (keyGroup->drawable)
         destroyWindow(keyGroup->drawable);
-    if(keyGroup->rects) {
+    if (keyGroup->rects) {
         free(keyGroup->rects);
         keyGroup->rects = NULL;
     }
 }
 void cleanupBoard(Board*board) {
-    for(int i = 0; i < board->groupSize; i++) {
+    for (int i = 0; i < board->groupSize; i++) {
         cleanupKeygroup(board->keyGroup + i);
     }
 }
 void setupWindowsForBoard(Board*board) {
     setFont(board->fontName, board->fontSize);
-    for(int i = 0; i < board->groupSize; i++) {
-        KeyGroup* keyGroup=&board->keyGroup[i];
-        keyGroup->drawable=createWindow(WINDOW_MASKS);
+    for (int i = 0; i < board->groupSize; i++) {
+        KeyGroup* keyGroup =&board->keyGroup[i];
+        keyGroup->drawable = createWindow(WINDOW_MASKS);
         setWindowProperties(keyGroup->drawable);
         updateDockProperties(keyGroup->drawable, keyGroup->dockProperties);
         mapWindow(keyGroup->drawable);
@@ -355,7 +355,7 @@ void setupWindowsForBoard(Board*board) {
 
 int activateBoardByName(const char*name) {
     Board*board = getActiveBoard();
-    if(setActiveBoard(name)) {
+    if (setActiveBoard(name)) {
         cleanupBoard(board);
         setupWindowsForBoard(getActiveBoard());
         return 1;
@@ -370,8 +370,8 @@ static void createBoardOfBoards() {
     int numRows = (numBoards + numColumns - 1 ) / numColumns;
     int numKeys = numBoards + numRows - 1;
     Key* keys = calloc(numKeys, sizeof(Key));
-    for(int i = 0, n = 0; i < numKeys; i++) {
-        for(int c = 0; c < numColumns && i < numKeys; c++, i++) {
+    for (int i = 0, n = 0; i < numKeys; i++) {
+        for (int c = 0; c < numColumns && i < numKeys; c++, i++) {
             keys[i].label = boards[n++].name;
             keys[i].onPress = activateBoard;
         }
@@ -386,7 +386,7 @@ void init() {
 }
 
 void listBoards() {
-    for(int i=0;i<numBoards;i++)
+    for (int i = 0; i < numBoards; i++)
         printf("%s\n", boards[i].name);
 }
 
@@ -398,8 +398,8 @@ void usage() {
 int __attribute__((weak)) main(int argc, const char* args[]) {
     createBoardOfBoards();
     int i;
-    for(i=1; i < argc; i++) {
-        if(args[i][0] == '-')
+    for (i = 1; i < argc; i++) {
+        if (args[i][0] == '-')
             switch(args[i][1]) {
                 case 'l':
                     listBoards();
@@ -414,10 +414,10 @@ int __attribute__((weak)) main(int argc, const char* args[]) {
         else
             break;
     }
-    const char*activeBoardName = args[i]? args[i] : getenv("NAVBOARD_DEFAULT")? getenv("NAVBOARD_DEFAULT"): NULL;
+    const char*activeBoardName = args[i] ? args[i] : getenv("NAVBOARD_DEFAULT") ? getenv("NAVBOARD_DEFAULT"): NULL;
 
-    if(activeBoardName)
-        if(!setActiveBoard(activeBoardName)) {
+    if (activeBoardName)
+        if (!setActiveBoard(activeBoardName)) {
             printf("Unknown board %s; Valid names are:\n", activeBoardName);
             listBoards();
             exit(1);
@@ -426,7 +426,7 @@ int __attribute__((weak)) main(int argc, const char* args[]) {
     grabSelection();
     setupWindowsForBoard(getActiveBoard());
     xFlush();
-    while(1) {
+    while (1) {
         processEvents(-1);
     }
 }
