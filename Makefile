@@ -14,7 +14,8 @@ DTEXT_LDFLAGS = -lxcb-render -lxcb-render-util -lfreetype
 CFLAGS += -fPIC -Wall -Werror -Wno-missing-field-initializers -Wno-missing-braces $(DTEXT_CFLAGS)
 SRCS := config.c util.c navboard.c xutil.c functions.c
 BIN := navboard
-BOARDS ?= $(wildcard boards/*.c)
+SAMPLE_BOARDS_1 ?= $(wildcard samples/*.c)
+BOARDS ?= $(wildcard boards/*.c) $(SAMPLE_BOARDS_$(SAMPLES))
 BOARDS_OBJ ?= $(BOARDS:.c=.o)
 
 LDFLAGS := -lX11 -lxcb -lxcb-ewmh -lxcb-icccm -lxcb-xtest $(DTEXT_LDFLAGS)
