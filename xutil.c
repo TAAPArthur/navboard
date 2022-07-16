@@ -1,6 +1,5 @@
 #include <X11/keysym.h>
 #include <assert.h>
-#include <dtext/dtext.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -9,6 +8,8 @@
 #include <xcb/xcb_icccm.h>
 #include <xcb/xtest.h>
 
+#define DTEXT_XCB_IMPLEMENTATION
+#include "dtext_xcb.h"
 #include "xutil.h"
 
 static xcb_connection_t* dis;
@@ -21,7 +22,7 @@ static xcb_gcontext_t  gc;
 static const xcb_setup_t* xSetup;
 static xcb_get_keyboard_mapping_reply_t* keyboard_mapping;
 static uint32_t rootDims[2];
-dt_font *font;
+static dt_font *font;
 
 
 static int avgNumberLengthWithCurrentFont;
@@ -73,14 +74,14 @@ void closeConnection() {
 }
 
 void setFont(const char* fontName, int size) {
-    if(font) {
+    if (font) {
         dt_free_font(dis, font);
         font = NULL;
     }
 
-    if(fontName) {
-        dt_load_font(dis, &font, fontName, size);
-        if(!font) {
+    if (fontName) {
+        font = dt_load_font(dis, fontName, size);
+        if (!font) {
             printf("Could not load font name %s\n", fontName);
             exit(1);
         }
@@ -107,29 +108,29 @@ XDrawable* createWindow(uint32_t windowMasks) {
     XDrawable* drawable = malloc(sizeof(XDrawable));
 
 
-    dt_init_context(&drawable->ctx, dis, win);
+    drawable->ctx = dt_create_context(dis, win);
     drawable->win = win;
     drawable->drawable = win;
     return drawable;
 }
 
-void mapWindow(XDrawable* drawable){
+void mapWindow(XDrawable* drawable) {
     xcb_map_window(dis, drawable->win);
 }
 
-void onResize(XDrawable* drawable, uint32_t width, uint32_t height){
-        if(drawable->drawable == drawable->win || drawable->width != width || drawable->win != height) {
+void onResize(XDrawable* drawable, uint32_t width, uint32_t height) {
+        if (drawable->drawable == drawable->win || drawable->width != width || drawable->win != height) {
             xcb_window_t pixmapId = xcb_generate_id (dis);
             xcb_create_pixmap(dis, depth, pixmapId, root, width, height);
             xcb_change_window_attributes(dis, drawable->win, XCB_CW_BACK_PIXMAP, &pixmapId);
-            if(drawable->drawable != drawable->win) {
+            if (drawable->drawable != drawable->win) {
                 xcb_free_pixmap(dis, drawable->drawable);
             }
             drawable->drawable = pixmapId;
             drawable->width = width;
             drawable->height = height;
             dt_free_context(drawable->ctx);
-            dt_init_context(&drawable->ctx, dis, drawable->drawable);
+            drawable->ctx = dt_create_context(dis, pixmapId);
         }
 }
 
