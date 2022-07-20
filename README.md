@@ -18,7 +18,6 @@ The following libraries are needed to build
 - Lib to send fake key/button events: Library-lxcb-xtest
 - Font related libs: -lxcb-render -lxcb-render-util -lfreetype
 
-In addition, the single header lib [dtext-xcb](https://codeberg.org/TAAPArthur/dtext-xcb) is needed. [dtext_xcb.h](https://codeberg.org/TAAPArthur/dtext-xcb/dtext_xcb.h) can simply be dropped in this directory instead of being installed system wide.
 For tests, [scunittest](https://codeberg.org/TAAPArthur/scunittest) is also needed.
 
 ## Usage
