@@ -39,7 +39,7 @@ struct xdrawable {
 
 void initConnection() {
     dis = xcb_connect(NULL, NULL);
-    if (!dis)
+    if (xcb_connection_has_error(dis))
         exit(1);
     xcb_intern_atom_cookie_t* cookie = xcb_ewmh_init_atoms(dis, ewmh);
     xcb_ewmh_init_atoms_replies(ewmh, cookie, NULL);
