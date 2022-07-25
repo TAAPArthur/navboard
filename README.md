@@ -22,9 +22,10 @@ For tests, [scunittest](https://codeberg.org/TAAPArthur/scunittest) is also need
 
 ## Usage
 
-`navboard` opens up the default OSK (standard qwerty layout)
+`navboard` opens up a launcher to select the board to use. The default action can be changed by setting NAVBOARD_DEFAULT env variable
+`navboard board_of_boards` same as the above
+`navboard qwerty ` opens up the default OSK (standard qwerty layout)
 `navboard mobile` opens up the default mobile OSK
-`navboard board_of_boards` opens up a launcher to select the board to use
 
 ## Custom boards
 

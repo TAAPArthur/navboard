@@ -14,6 +14,7 @@
 #include "util.h"
 #include "xutil.h"
 
+#define BOARD_OF_BOARDS "board_of_boards"
 Board boards[MAX_BOARDS];
 int numBoards = 0;
 static int activeIndex;
@@ -376,7 +377,7 @@ static void createBoardOfBoards() {
             keys[i].onPress = activateBoard;
         }
     }
-    boards[numBoards++] = CREATE_BOARD("board_of_boards", keys, numKeys);
+    boards[numBoards++] = CREATE_BOARD(BOARD_OF_BOARDS, keys, numKeys);
 }
 
 void init() {
@@ -414,14 +415,13 @@ int __attribute__((weak)) main(int argc, const char* args[]) {
         else
             break;
     }
-    const char*activeBoardName = args[i] ? args[i] : getenv("NAVBOARD_DEFAULT") ? getenv("NAVBOARD_DEFAULT"): NULL;
+    const char* activeBoardName = args[i] ? args[i] : getenv("NAVBOARD_DEFAULT") ? getenv("NAVBOARD_DEFAULT"): BOARD_OF_BOARDS;
 
-    if (activeBoardName)
-        if (!setActiveBoard(activeBoardName)) {
-            printf("Unknown board %s; Valid names are:\n", activeBoardName);
-            listBoards();
-            exit(1);
-        }
+    if (!setActiveBoard(activeBoardName)) {
+        printf("Unknown board %s; Valid names are:\n", activeBoardName);
+        listBoards();
+        exit(1);
+    }
     init();
     grabSelection();
     setupWindowsForBoard(getActiveBoard());
