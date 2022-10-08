@@ -17,7 +17,7 @@ void sendKeyReleaseWithModifiers(KeyGroup*keyGroup, Key*key);
 void typeKey(KeyGroup*keyGroup, Key*key);
 
 
-void setKeyEnv(const Key* key);
+void setKeyEnv(const Key* key, int reading);
 void spawnCmd(KeyGroup*keyGroup, Key*key);
 void readValueFromCmd(KeyGroup*keyGroup, Key*key);
 

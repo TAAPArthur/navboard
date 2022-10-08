@@ -45,27 +45,28 @@ void activateBoard(KeyGroup*keyGroup, Key*key) {
     activateBoardByName(key->arg.s ? key->arg.s: key->label);
 }
 
-void setKeyEnv(const Key* key) {
+void setKeyEnv(const Key* key, int reading) {
     char buffer[8];
     sprintf(buffer, "%d", key->value);
     setenv("KEY_VALUE", buffer, 1);
     sprintf(buffer, "%d", key->pressed);
     setenv("KEY_PRESSED", buffer, 1);
+    setenv("READING", reading ? "1" : "0", 1);
     if (key->label)
         setenv("KEY_LABEL", key->label, 1);
 }
 void spawnCmd(KeyGroup*keyGroup, Key*key) {
-    setKeyEnv(key);
+    setKeyEnv(key, 0);
     spawn(key->arg.s);
 }
 void setPressedFromCmd(KeyGroup*keyGroup, Key*key) {
-    setKeyEnv(key);
+    setKeyEnv(key, 1);
     key->pressed = !spawn(key->arg.s);
 }
 
 void readValueFromCmd(KeyGroup*keyGroup, Key*key) {
     char buffer[8] = {0};
-    setKeyEnv(key);
+    setKeyEnv(key, 1);
     if (readCmd(key->arg.s, buffer, sizeof(buffer)) == 0)
         key->value = atoi(buffer);
 }
