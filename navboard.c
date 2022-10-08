@@ -82,6 +82,12 @@ int getNumRows(KeyGroup* keyGroup) {
     return rows;
 }
 
+static void maybeLoadKeyValue(KeyGroup* keyGroup, Key* key) {
+    if (key->loadValue && !(key->flags & KEY_DISABLED)) {
+        key->loadValue(keyGroup, key);
+    }
+}
+
 static int initKeys(KeyGroup* keyGroup) {
     Key* keys = keyGroup->keys;
     int n = keyGroup->numKeys;
@@ -91,10 +97,8 @@ static int initKeys(KeyGroup* keyGroup) {
         if (isRowSeperator(&keys[i]))
             continue;
         setDefaults(&keys[i]);
+        maybeLoadKeyValue(keyGroup, &keys[i]);
 
-        if (keys[i].loadValue && !(keys[i].flags & KEY_DISABLED)) {
-            keys[i].loadValue(keyGroup, keys + i);
-        }
         xcb_keysym_t* sym = NULL;
         keys[i].index = j++;
         if (keys[i].keySym) {
@@ -279,6 +283,14 @@ void triggerCell(KeyGroup*keyGroup, Key*key, TriggerType type) {
         key->onRelease(keyGroup, key);
     else if (type == DRAG && key->onDrag)
         key->onDrag(keyGroup, key);
+    else
+        return;
+
+    if (key->flags & TRIGGER_RELOAD) {
+        for (int i = 0, n = 0; i < keyGroup->numKeys; i++) {
+            maybeLoadKeyValue(keyGroup, &keyGroup->keys[i]);
+        }
+    }
 
 }
 

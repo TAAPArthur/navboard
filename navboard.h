@@ -13,6 +13,7 @@
 #define MOD            (1<<2)
 #define LATCH          (1<<3)
 #define KEY_DISABLED   (1<<4)
+#define TRIGGER_RELOAD (1<<5)
 
 typedef enum {
     RELEASE, PRESS, DRAG
